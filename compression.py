@@ -49,7 +49,7 @@ def get_lin_values(exes, m, b):
     return [func_linear(x, m, b) for x in exes]
 
 
-def get_line(exes, whys, start_end, return_error=False):
+def get_line(exes, whys, start_end, return_e=False):
     """
     Returns m, b and r2 value for the line that best fits a subset of points.
 
@@ -58,7 +58,7 @@ def get_line(exes, whys, start_end, return_error=False):
         whys: the y values in the series
         start_end: a list of len 2 indicating the start (inclusive) and end (exclusive) of the subset.
                    Does not need to be ordered
-    Returns: A tuple (m, b, r2) unless return_error is True, which will return only the r2 and error
+    Returns: A tuple (m, b, e_norm)
     """
     slicer = start_end[:]
     slicer.sort()
@@ -68,20 +68,16 @@ def get_line(exes, whys, start_end, return_error=False):
     m, b = np.polyfit(x, y, 1)
 
     predictions = get_lin_values(x, m, b)
-    r2 = get_r2(predictions, y)
+    e = sum_of_square_error(predictions, y)
+    e_norm = e / (start_end[1] - start_end[0])
 
-    if return_error:
-        return r2, sum_of_square_error(predictions, y)
+    if return_e:
+        return m, b, e_norm, e
     else:
-        return m, b, r2
+        return m, b, e_norm
 
 
-def plot_line(tup, from_x, to_x):
-    exes = [from_x,to_x]
-    whys = get_lin_values(exes,tup[0],tup[1])
-    plt.plot(exes,whys)
-
-
+'''
 def trawl(exes, whys, start, threshold=0.8, step=-1):
     """
     For a data series, starts at a point and begins fitting lines to an increasing number of points,
@@ -120,6 +116,7 @@ def trawl(exes, whys, start, threshold=0.8, step=-1):
         res = [ind-step, start]
     res.sort()
     return res
+'''
 
 
 def split_segment(exes, whys, segment):
@@ -138,30 +135,30 @@ def split_segment(exes, whys, segment):
     if segment[1] - segment[0] == 3:
         seg1 = [segment[0], segment[0]+2]
         seg2 = [segment[1]-2, segment[1]]
-        r1, e1 = get_line(exes, whys, seg1, return_error=True)
-        r2, e2 = get_line(exes, whys, seg2, return_error=True)
+        m1, b1, e_norm1, e1 = get_line(exes, whys, seg1, return_e=True)
+        m2, b2, e_norm2, e2 = get_line(exes, whys, seg2, return_e=True)
 
-        win_r1, win_r2 = r1, r2
-        win_segs = [[seg1[0], seg1[1], win_r1], [seg2[0], seg2[1], win_r2]]
+        win_e1, win_e2 = e_norm1, e_norm2
+        win_segs = [[seg1[0], seg1[1], win_e1], [seg2[0], seg2[1], win_e2]]
 
         #print(f'Split result: {win_segs}. Obligate result.')
         return win_segs
 
-    win_r1, win_r2 = 0, 0
     win_e1, win_e2 = -1, -1
+    win_e_norm1, win_e_norm2 = 0, 0
     win_segs = []
     for i in range(segment[0]+2, segment[1]-1):
         seg1 = [segment[0], i]
         seg2 = [i-1, segment[1]]
 
-        r1, e1 = get_line(exes, whys, seg1, return_error=True)
-        r2, e2 = get_line(exes, whys, seg2, return_error=True)
+        m1, b1, e_norm1, e1 = get_line(exes, whys, seg1, return_e=True)
+        m2, b2, e_norm2, e2 = get_line(exes, whys, seg2, return_e=True)
         #print(f'errors: {e1, e2}')
         if 1/sum([e1, e2]) > 1/sum([win_e1, win_e2]):
             #print(f'Winner')
-            win_r1, win_r2 = r1, r2
+            win_e_norm1, win_e_norm2 = e_norm1, e_norm2
             win_e1, win_e2 = e1, e2
-            win_segs = [[seg1[0], seg1[1], win_r1], [seg2[0], seg2[1], win_r2]]
+            win_segs = [[seg1[0], seg1[1], win_e_norm1], [seg2[0], seg2[1], win_e_norm2]]
     #print(f'Split result: {win_segs}. Errors: {win_e1, win_e2}')
     return win_segs
 
@@ -199,14 +196,14 @@ def regroup(x, n):
     return new_list
 
 
-def linear_recurse(exes, whys, threshold=0.8, segments=None):
+def linear_recurse(exes, whys, threshold=1, segments=None):
     """
     Recursively breaks a data series into segments until the r2 for all segments exceeds the threshold.
 
     Args:
         exes: the x values in the series
         whys: the y values in the series
-        threshold: the r2 threshold to be exceeded
+        threshold: the e_norm threshold that all segments should be under
         segments: an optional list of lists that indicate the segment slices to start with and corresponding r2
 
     Returns: a tuple of lists, where each list is the start (incl), end (excl) and r2 of each segment
@@ -222,7 +219,7 @@ def linear_recurse(exes, whys, threshold=0.8, segments=None):
     flattened = [i for i in flatten(segments)]
     segments = regroup(flattened, 3)
     print(f'Segments: {segments}')
-    if all(seg[2] >= threshold for seg in segments):
+    if all(seg[2] <= threshold for seg in segments):
         print(f'Returning. Final: {segments}')
         return segments
     else:

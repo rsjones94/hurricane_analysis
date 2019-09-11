@@ -22,15 +22,16 @@ def func(x):
     return y
 """
 
-n = 100
+n = 300
 noise = 0.1
-thresh = 0.7
+thresh = 0.5
 
 def func(x):
     y = .2*math.sin(.1*x) + 0.023*x + math.sin(.002*x)\
         - 0.0018*x**1.6 + 0.00000002*(x-100)**4\
         + .05*math.sin(.5*x)\
-        + .4*math.cos(0.03*x+2)
+        + .4*math.cos(0.03*x+2)\
+        + .8*math.sin(.1*x)
     y += np.random.normal(0,noise)
     return y
 
@@ -53,7 +54,6 @@ ny = [func_linear(i, m, b) for i in nex]
 """
 
 res = linear_recurse(exes, whys, thresh, None)
-print(f'Result: {res}')
 
 starts = [i[0] for i in res]
 ends = [i[1] for i in res]
@@ -66,9 +66,19 @@ plt.plot(exes, whys)
 for s in ses:
     plt.plot(exes[s[0]:s[1]], whys[s[0]:s[1]])
 
-plt.plot(exes[32:100], whys[32:100])
-se = [32,100]
-l = get_line(exes,whys,se)
-plot_line(l, se[0], se[1])
+"""
+f = 32
+t = 100
 
+plt.plot(exes[f:t], whys[f:t])
+se = [f,t]
+l = get_line(exes,whys,se)
+#plot_line(l, se[0], se[1])
+preds = get_lin_values(whys[f:t],l[0],l[1])
+act = whys[f:t]
+plt.plot(exes[f:t],preds)
+"""
+
+plt.xlim(0,100)
+plt.ylim(-3,3)
 plt.show()
