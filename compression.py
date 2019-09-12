@@ -131,7 +131,6 @@ def split_segment(exes, whys, segment):
 
     Returns: a tuple with two sublists containing the start and end of each new segment and r2
     """
-    #print(f'Splitting {segment}')
     if segment[1] - segment[0] == 3:
         seg1 = [segment[0], segment[0]+2]
         seg2 = [segment[1]-2, segment[1]]
@@ -198,13 +197,13 @@ def regroup(x, n):
 
 def linear_recurse(exes, whys, threshold=1, segments=None):
     """
-    Recursively breaks a data series into segments until the r2 for all segments exceeds the threshold.
+    Recursively breaks a data series into segments until the e^2_norm for all segments is under the threshold.
 
     Args:
         exes: the x values in the series
         whys: the y values in the series
-        threshold: the e_norm threshold that all segments should be under
-        segments: an optional list of lists that indicate the segment slices to start with and corresponding r2
+        threshold: the e^2_norm threshold that all segments should be under
+        segments: an optional list of lists that indicate the segment slices to start with and corresponding e^2_norm
 
     Returns: a tuple of lists, where each list is the start (incl), end (excl) and r2 of each segment
     """
@@ -214,13 +213,11 @@ def linear_recurse(exes, whys, threshold=1, segments=None):
         segments = [[start_end[0], start_end[1], get_line(exes, whys, start_end)[2]]]
 
     #print(f'New segs: {segments}')
-    segments = [split_segment(exes,whys,seg) if seg[2] < threshold else seg for seg in segments]
-
+    segments = [split_segment(exes,whys,seg) if seg[2] > threshold else seg for seg in segments]
     flattened = [i for i in flatten(segments)]
     segments = regroup(flattened, 3)
-    print(f'Segments: {segments}')
+    print(f'New Segments: {segments}')
     if all(seg[2] <= threshold for seg in segments):
-        print(f'Returning. Final: {segments}')
         return segments
     else:
         return linear_recurse(exes, whys, threshold=threshold, segments=segments)

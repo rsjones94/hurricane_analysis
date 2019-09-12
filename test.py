@@ -21,23 +21,31 @@ def func(x):
     y += np.random.normal(0,noise)
     return y
 """
+x_dom = 120
 
 n = 300
-noise = 0.1
-thresh = 0.5
+noise = 0.2
+thresh = None
+
+
+
+
+
+
+
+
+if thresh is None:
+    thresh = noise*2
 
 def func(x):
-    y = .2*math.sin(.1*x) + 0.023*x + math.sin(.002*x)\
-        - 0.0018*x**1.6 + 0.00000002*(x-100)**4\
-        + .05*math.sin(.5*x)\
-        + .4*math.cos(0.03*x+2)\
-        + .8*math.sin(.1*x)
+    y = -math.log10(x)*5 + 0.00001*x**3 - 0.000002*(x+80)**3 + 1*math.sin(0.1*x) + 0.1*x
     y += np.random.normal(0,noise)
     return y
 
+
 ####
 
-exes = [round(random.random()*100, 3) for i in range(0,n)]
+exes = [round(random.random()*x_dom, 3) for i in range(0,n)]
 exes.sort()
 
 
@@ -79,6 +87,6 @@ act = whys[f:t]
 plt.plot(exes[f:t],preds)
 """
 
-plt.xlim(0,100)
-plt.ylim(-3,3)
+plt.xlim(0,x_dom)
+plt.ylim(-15,15)
 plt.show()
