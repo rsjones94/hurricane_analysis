@@ -35,7 +35,7 @@ thresh = None
 
 
 if thresh is None:
-    thresh = noise*2
+    thresh = noise*1
 
 def func(x):
     y = -math.log10(x)*5 + 0.00001*x**3 - 0.000002*(x+80)**3 + 1*math.sin(0.1*x) + 0.1*x
