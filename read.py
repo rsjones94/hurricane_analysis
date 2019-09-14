@@ -42,8 +42,8 @@ def window_stddev(whys, window_size, step=1):
     for i in range(0, len(whys)-window_size, step):
         sub_y = np.array(whys[i:(i + (window_size - 1))])
         sub_y = sub_y[~np.isnan(sub_y)]
-
-        devs.append(np.std(sub_y))
+        dev = np.std(sub_y)
+        devs.append(dev)
 
     return np.mean(devs)
 
