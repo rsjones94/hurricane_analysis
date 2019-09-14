@@ -65,16 +65,16 @@ for i in range(2,28):
 '''
 
 ind = 10485
-width = 56*8
+width = 28*2
 history = int(width/2)
 
 start = ind-int(width/2)
-end = ind+int(width/2)
+end = ind+int(width/2)+1
 
-dev = typical_stddev(data[col], at_index=ind, history_length=history, window_size=14, step=3)
+dev = typical_stddev(data[col], at_index=ind, history_length=history, window_size=14, step=7)
 segs = segment_window(data, col, dev, ind, width=width)
 
-#plt.plot(data.index[start:(end+1)], data[col][start:(end+1)], linewidth=3)
+#plt.plot(data.index[start:(end)], data[col][start:(end)], linewidth=3)
 for seg in segs:
-    plt.plot(data.index[seg[0]:(seg[1]+1)], data[col][seg[0]:(seg[1]+1)])
+    plt.plot(data.index[seg[0]:(seg[1])], data[col][seg[0]:(seg[1])])
 plt.axvline(ind, color='red', linewidth=1, linestyle='dashed')

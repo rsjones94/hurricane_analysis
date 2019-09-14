@@ -79,7 +79,7 @@ def segment_window(df, why_col, threshold, index, width=56):
         width: the number of rows to include in the subset, centered on index
 
     Returns:
-        a list of tuples of the ABSOLUTE (not relative) indices (inclusive) of the segments
+        a list of tuples of the ABSOLUTE (not relative) indices (inclusive:exclusive) of the segments
 
     """
     slicer = (index-int(width/2), index+int(width/2))
@@ -91,7 +91,7 @@ def segment_window(df, why_col, threshold, index, width=56):
 
     res = linear_recurse(exes, whys, threshold=threshold)
     starts = [exes[i[0]] for i in res]
-    ends = [exes[i[1]-1] for i in res]
+    ends = [exes[i[1]-1]+1 for i in res]
     #e_norms = [i[2] for i in res]
 
     ses = [list(i) for i in zip(starts, ends)]
