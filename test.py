@@ -65,7 +65,7 @@ res = linear_recurse(exes, whys, thresh, None)
 
 starts = [i[0] for i in res]
 ends = [i[1] for i in res]
-r2s = [i[2] for i in res]
+e_norms = [i[2] for i in res]
 
 ses = [list(i) for i in zip(starts,ends)]
 

@@ -1,3 +1,5 @@
+# NOTE: e norm here is NOT standard error: it is length-averaged error
+
 from itertools import chain
 
 import numpy as np
@@ -198,6 +200,7 @@ def regroup(x, n):
 def linear_recurse(exes, whys, threshold=1, segments=None):
     """
     Recursively breaks a data series into segments until the e^2_norm for all segments is under the threshold.
+    Data cannot have any None, nan, etc. values
 
     Args:
         exes: the x values in the series
