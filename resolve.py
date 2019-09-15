@@ -78,9 +78,9 @@ station_dfs = {station[:-4]:clean_read(os.path.join(stations_folder,station)) fo
 
 
 for param, df in param_dfs.items():
+    df= param_dfs[param].dropna()
     n_rows = len(df)
     print(f'\nOn {param}. {n_rows} rows.\n')
-    df= param_dfs[param].dropna()
     out_folder = os.path.join(plot_folder, param)
     os.mkdir(out_folder)
     for i,row in enumerate(df.iterrows()):
