@@ -51,10 +51,12 @@ def resolve(gauge_df, param, preeffect_df, view_width=int(28*2), gauge_name=None
                       f'{param}, {storm} ({storm_date})\n'
                       f'Window: {pr_len} days (mean {mean}, stddev {stddev}, n {n})')
 
-def plot_gauge(gauge, param, gauge_dfs, param_dfs, save=False):
+            plt.show()
+
+def plot_gauge(gauge, param, gauge_dfs, param_dfs, view_width=int(28*2), save=False):
     gauge_df = gauge_dfs[gauge]
     pr_df = pare_preeffect_df(gauge, param_dfs[param])
-    resolve(gauge_df, param, pr_df, save=save)
+    resolve(gauge_df, param, pr_df, view_width=view_width, save=save)
 
 results_folder = r'E:\hurricane\results'
 stations_folder = r'E:\hurricane\station_data\Finished_Stations'
@@ -66,8 +68,8 @@ param_dfs = {param[:-4]:pd.read_csv(os.path.join(results_folder,param), dtype={'
 station_dfs = {station[:-4]:clean_read(os.path.join(stations_folder,station)) for station in stations}
 
 
-gauge = '02105769'
-param = 'Discharge'
-plot_gauge(gauge, param, gauge_dfs=station_dfs, param_dfs=param_dfs, save=False)
+gauge = '02101726'
+param = 'DO'
+plot_gauge(gauge, param, gauge_dfs=station_dfs, param_dfs=param_dfs, view_width=int(28*4), save=False)
 
 
