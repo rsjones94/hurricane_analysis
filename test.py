@@ -28,12 +28,6 @@ noise = 0.2
 thresh = None
 
 
-
-
-
-
-
-
 if thresh is None:
     thresh = noise*1
 

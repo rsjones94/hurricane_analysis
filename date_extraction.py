@@ -31,6 +31,7 @@ def relate_gauges_to_storms(storm_file, storm_effect_folder, ext='.txt'):
         file = os.path.join(storm_effect_folder, file)
         gauges = pd.read_csv(file, header=None)[0]
         for gauge in gauges:
+            gauge = gauge[1:-1]
             if gauge not in gauges:
                 gauges_to_storms[gauge] = {storm:storm_dict[storm]}
             else:

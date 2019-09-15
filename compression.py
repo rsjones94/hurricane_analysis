@@ -219,7 +219,7 @@ def linear_recurse(exes, whys, threshold=1, segments=None):
     segments = [split_segment(exes,whys,seg) if seg[2] > threshold else seg for seg in segments]
     flattened = [i for i in flatten(segments)]
     segments = regroup(flattened, 3)
-    print(f'New Segments: {segments}')
+    #print(f'New Segments: {segments}')
     if all(seg[2] <= threshold for seg in segments):
         return segments
     else:

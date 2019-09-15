@@ -37,15 +37,20 @@ def window_stddev(whys, window_size, step=1):
         a float representing the average stddev
 
     """
-
     devs = []
     for i in range(0, len(whys)-window_size, step):
         sub_y = np.array(whys[i:(i + (window_size - 1))])
         sub_y = sub_y[~np.isnan(sub_y)]
-        dev = np.std(sub_y)
-        devs.append(dev)
+        if len(sub_y) < 2:
+            devs.append(np.nan)
+        else:
+            dev = np.std(sub_y)
+            devs.append(dev)
 
-    return np.mean(devs)
+    if not all(np.isnan(x) for x in devs):
+        return np.mean(devs)
+    else:
+        return np.nan
 
 
 def typical_stddev(whys, at_index, history_length=28, window_size=14, step=2):
@@ -64,10 +69,10 @@ def typical_stddev(whys, at_index, history_length=28, window_size=14, step=2):
 
     """
     subset = whys[(at_index-history_length):at_index]
-    return window_stddev(subset, window_size=window_size, step=2)
+    return window_stddev(subset, window_size=window_size, step=step)
 
 
-def segment_window(df, why_col, threshold, index, width=56):
+def segment_view(df, why_col, threshold, index, width):
     """
     Recursively segments a a subset of a pandas df
 
@@ -96,4 +101,60 @@ def segment_window(df, why_col, threshold, index, width=56):
 
     ses = [list(i) for i in zip(starts, ends)]
     return ses
+
+
+def get_preeffect_window(df, why_col, threshold, index, width, min_win=5, max_win=28):
+    """
+    Gets the preeffect window for an index by subsetting a df around an index and then
+    recursively splitting it. The window's end is always the index (exclusive).
+
+    Args:
+        df: a pandas df
+        why_col: col name for the y values
+        threshold: the maximum error threshold allowed
+        index: the ABSOLUTE index of the row to center the subset on
+        width: the number of rows to include in the subset, centered on index
+        min_win: min window length (inclusive)
+        max_win: max window length (inclusive)
+
+    Returns:
+        a list (len 2) of the ABSOLUTE (not relative) indices (inclusive:exclusive) of the window
+
+    """
+
+    segs = segment_view(df, why_col, threshold, index, width)
+    segs.reverse()
+
+    for seg in segs:
+        if seg[0] < index:
+            window = [seg[0],index]
+            win_len = window[1] - window[0]
+            if win_len < min_win:
+                window[0] = window[1] - (min_win)
+            elif win_len > max_win:
+                window[0] = window[1] - (max_win)
+            return window
+
+    raise IndexError('Preeffect window error')
+
+
+def analyze_window(df, why_col, window):
+    """
+    Gets the mean, stddev and number of points for a window. Strips None/nans
+
+    Args:
+        df: a dataframe
+        why_col: col name for the y values
+        window: window as a tuple or list (inclusive:exclusive)
+
+    Returns:
+        a tuple (mean, stddev, n_points)
+
+    """
+    sub = df[why_col][window[0]:window[1]]
+    sub = sub.dropna()
+    mean = np.mean(sub)
+    stddev = np.std(sub)
+
+    return mean, stddev, len(sub)
 
