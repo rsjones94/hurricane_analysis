@@ -56,6 +56,8 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
         plt.title(f'{gauge_name}\n'
                   f'{param}, {storm} ({storm_date})\n'
                   f'Window: {pr_len} days (mean {mean}, stddev {stddev}, n {n})')
+
+        plt.xlim(start, end)
         if save:
             saver = os.path.join(saveloc,f'{gauge_name}_{storm}_{param}.pdf')
             plt.savefig(saver)
@@ -66,9 +68,9 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
         plt.ion()
 
 
-results_folder = r'E:\hurricane\results'
-stations_folder = r'E:\hurricane\station_data\Finished_Stations'
-plot_folder = r'E:\hurricane\plots'
+results_folder = r'D:\SkyJones\hurricane\results'
+stations_folder = r'D:\SkyJones\hurricane\station_data\Finished_Stations'
+plot_folder = r'D:\SkyJones\hurricane\plots'
 
 params = os.listdir(results_folder)
 stations = os.listdir(stations_folder)
