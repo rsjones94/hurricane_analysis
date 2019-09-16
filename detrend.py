@@ -6,30 +6,34 @@ import matplotlib.pyplot as plt
 from read import *
 
 
-def t_days_to_f_s(x):
+def detrend(x, fs, T, ftype, recenter=True):
     """
-    Converts a period measured in months to its equivalent frequency in Hz
+    Removes sinusoidal signals from a CONTINUOUS, REGULARLY sampled time series. Note that signals with a frequency
+        higher than the Nyquist frequency (fs/2) cannot be removed.
 
     Args:
-        x: a float or int
+        x: the data
+        fs: the sampling FREQUENCY of the data
+        T: the PERIOD or PERIODS (not frequency) for the filter
+        ftype: the filtering type. 'highpass', 'lowpass', 'bandpass', 'bandstop'
+        recenter: if True, with output will have the same mean as the input
 
     Returns:
-        float
+        The detrended data as a np array
     """
-    return 1/(x*24*60*60)
+    try:
+        w = [(1/i)/(fs/2) for i in T] # convert the period to frequency and normalize
+        w.sort()
+    except TypeError:
+        w = (1/T)/(fs/2) # convert the period to frequency and normalize
 
-def f_days_to_f_s(x):
-    """
-    Converts a frequency measured in months to its equivalent frequency in Hz
+    b, a = signal.butter(5, w, ftype)
+    res = signal.filtfilt(b, a, x)
 
-    Args:
-        x: a float or int
-
-    Returns:
-        float
-    """
-    return x/(24*60*60)
-
+    if recenter:
+        return res + (np.mean(x)-np.mean(res))
+    else:
+        return res
 
 parent = r'D:\SkyJones\hurricane\station_data\Finished_Stations'
 stations = os.listdir(parent)
@@ -43,30 +47,23 @@ fs = 1
 
 fc_high = 1/180
 fc_low = 1/3
-#t = np.array(data.index)[9320:10000]
-#signalc = np.array(data.DO)[9320:10000]
+
 t = np.array(data.index)
-original_signal = np.array(data)
+orig_sig = np.array(data)
 
-plt.plot(t, original_signal, label='signal')
 
-w_high = fc_high / (fs / 2) # Normalize the frequency
-w_low = fc_low / (fs / 2) # Normalize the frequency
+plt.figure()
 
-b_band, a_band = signal.butter(5, [w_high, w_low], 'bandpass')
-output_band = signal.filtfilt(b_band, a_band, original_signal) + np.mean(original_signal)
+plt.plot(t, orig_sig, label='signal')
 
-b_high, a_high = signal.butter(5, w_high, 'highpass')
-output_high = signal.filtfilt(b_high, a_high, original_signal) + np.mean(original_signal)
+high = detrend(orig_sig, 1, 180, 'high')
+plt.plot(t, high, label='high')
 
-plt.plot(t, output_high, label='high')
-plt.plot(t, output_band, label='band')
+low = detrend(orig_sig, 1, 10, 'low')
+plt.plot(t, low, label='low')
+
+band = detrend(orig_sig, 1, [10,180], 'bandpass')
+plt.plot(t, band, label='bandpass')
 
 plt.legend()
 plt.show()
-
-gap_signal = np.array(gap_data)
-gap_t = np.array(gap_data.index)
-resamp = signal.resample(gap_signal, len(gap_t), gap_t)
-
-plt.plot(resamp[1],resamp[0])
