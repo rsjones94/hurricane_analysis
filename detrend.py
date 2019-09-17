@@ -35,12 +35,105 @@ def detrend(x, fs, T, ftype, recenter=True):
     else:
         return res
 
+
+def continuous_subsets(tees, whys):
+    """
+    Finds sampling gaps and divides the data into continuous samples
+
+    Args:
+        tees: time values
+        whys: y values
+
+    Returns:
+        A tuple of two lists of lists (t_cont, y_cont), each list representing the continuous stretches of the data
+
+    """
+
+    groups_why = []
+    groups_tee = []
+    inner_why = []
+    inner_tee = []
+    for tee, why in zip(tees, whys):
+        if not np.isnan(why):
+            inner_why.append(why)
+            inner_tee.append(tee)
+        else:
+            if inner_why != []:
+                groups_why.append(inner_why)
+                groups_tee.append(inner_tee)
+                inner_why = []
+                inner_tee = []
+
+    if inner_why != []:
+        groups_why.append(inner_why)
+        groups_tee.append(inner_tee)
+        inner_why = []
+        inner_tee = []
+
+    return groups_tee, groups_why
+
+
+def detrend_discontinuous(t, x, fs, T, ftype, recenter=True):
+    """
+    Like detrend, but will split discontinuous data before detrending.
+
+    Args:
+        t: time data (should be continuous)
+        x: x data. may be gappy (has nans)
+        fs: the sampling FREQUENCY of the data
+        T: the PERIOD or PERIODS (not frequency) for the filter
+        ftype: the filtering type. 'highpass', 'lowpass', 'bandpass', 'bandstop'
+        recenter: if True, with output will have the same mean as the input
+
+    Returns:
+        The t data and detrended x data as two lists. If x was discontinuous, then these lists will be shorter than
+        the input lists
+
+    """
+
+    sub_tees, sub_exes = continuous_subsets(t, x)
+    d_exes = [detrend(sub, fs, T, ftype, recenter=False) for sub in sub_exes]
+
+    tees = []
+    exes = []
+    for sub_t, sub_x in zip(sub_tees, d_exes):
+        tees.extend(sub_t)
+        exes.extend(sub_x)
+
+    if recenter:
+        exes = exes + (np.nanmean(x)-np.mean(exes))
+
+    return tees, exes
+
+sta = 20 # fine
+#sta = 150 # problem - data too discontinuous. need to interpolate small gaps?
+#sta = 300 # same as above
+#sta = 500 # same as above
 parent = r'D:\SkyJones\hurricane\station_data\Finished_Stations'
 stations = os.listdir(parent)
-station = stations[20]
+station = stations[sta]
 
-path = os.path.join(parent,station)
+path = os.path.join(parent, station)
+
+full = clean_read(path)
+
+plt.figure()
+plt.plot(full.index, full['DO'], label='Original')
+plt.title(station)
+
+d_t, d_sig = detrend_discontinuous(full.index, full['DO'], 1, 180, 'high')
+DO_detrend = pd.Series(d_sig, d_t)
+full['DO Detrend'] = DO_detrend
+
+plt.plot(full.index, full['DO Detrend'], label='High Pass (T>180)')
+plt.legend()
+plt.show()
+
+"""
 gap_data = clean_read(path).DO
+gap_sig = np.array(gap_data)
+gap_t = np.array(gap_data.index)
+
 data = gap_data.dropna()
 
 fs = 1
@@ -50,8 +143,6 @@ fc_low = 1/3
 
 t = np.array(data.index)
 orig_sig = np.array(data)
-
-
 plt.figure()
 
 plt.plot(t, orig_sig, label='signal')
@@ -67,3 +158,6 @@ plt.plot(t, band, label='bandpass')
 
 plt.legend()
 plt.show()
+"""
+
+

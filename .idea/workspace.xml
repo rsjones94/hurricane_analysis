@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0356d623-77cd-4194-b470-ea436ebd44ec" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/detrend.py" beforeDir="false" afterPath="$PROJECT_DIR$/detrend.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -48,8 +49,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/detrend.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="510">
-              <caret line="33" column="44" selection-start-line="33" selection-start-column="44" selection-end-line="33" selection-end-column="44" />
+            <state relative-caret-position="483">
+              <caret line="126" selection-start-line="126" selection-end-line="126" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -339,12 +340,12 @@
       <workItem from="1568310412371" duration="4138000" />
       <workItem from="1568489900776" duration="30350000" />
       <workItem from="1568564615555" duration="4322000" />
-      <workItem from="1568651457528" duration="9011000" />
+      <workItem from="1568651457528" duration="13328000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="68748000" />
+    <option name="totallyTimeSpent" value="73065000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1912" y="-8" width="1936" height="1096" extended-state="6" />
@@ -471,8 +472,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/detrend.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="33" column="44" selection-start-line="33" selection-start-column="44" selection-end-line="33" selection-end-column="44" />
+        <state relative-caret-position="483">
+          <caret line="126" selection-start-line="126" selection-end-line="126" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
