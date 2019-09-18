@@ -123,8 +123,8 @@ def detrend_discontinuous(t, x, fs, T, ftype, max_gap=0, recenter=True):
         recenter: if True, with output will have the same mean as the input
 
     Returns:
-        The t data and detrended x data as two lists. If x was discontinuous, then these the sum of the lengths of
-        these lists will be shorter than the input lists
+        The detrended data as a pd Series. if the original data was discontinuous, there will be fewer entries in the
+        returned Series, but the index will still match up
 
     """
 
@@ -140,7 +140,8 @@ def detrend_discontinuous(t, x, fs, T, ftype, max_gap=0, recenter=True):
     if recenter:
         exes = exes + (np.nanmean(x)-np.mean(exes))
 
-    return tees, exes
+    c = crush_series(t, x, tees, exes)
+    return c
 
 
 def crush_series(original_index, original, to_crush_index, to_crush):
@@ -164,10 +165,11 @@ def crush_series(original_index, original, to_crush_index, to_crush):
     return df['crushed']
 
 
+
 #sta = 20 # fine
-sta = 150 # problem - data too discontinuous. need to interpolate small gaps?
+#sta = 150 # problem - data too discontinuous. need to interpolate small gaps?
 #sta = 300 # same as above
-#sta = 500 # same as above
+sta = 500 # same as above
 parent = r'D:\SkyJones\hurricane\station_data\Finished_Stations'
 stations = os.listdir(parent)
 station = stations[sta]
@@ -187,16 +189,10 @@ plt.figure()
 plt.plot(full.index, full['DO'], label='Original')
 plt.title(station)
 
-d_t, d_sig = detrend_discontinuous(full.index, full['DO'], 1, 180, 'high', max_gap=7)
-DO_detrend = pd.Series(d_sig, d_t)
-full['DO Detrend'] = DO_detrend
+dt = detrend_discontinuous(full.index, full['DO'], 1, 180, 'high', max_gap=7)
+full['DO Detrend'] = dt
 
 plt.plot(full.index, full['DO Detrend'], label='High Pass (T>180)')
-
-c = crush_series(full.index, full.DO, d_t, d_sig)
-full['Crushed'] = c
-
-plt.plot(full.index, full.Crushed, label='Crushed')
 
 plt.xlabel('t (days)')
 plt.ylabel('DO (mg/L)')
