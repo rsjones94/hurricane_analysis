@@ -123,8 +123,8 @@ def detrend_discontinuous(t, x, fs, T, ftype, max_gap=0, recenter=True):
         recenter: if True, with output will have the same mean as the input
 
     Returns:
-        The t data and detrended x data as two lists. If x was discontinuous, then these lists will be shorter than
-        the input lists
+        The t data and detrended x data as two lists. If x was discontinuous, then these the sum of the lengths of
+        these lists will be shorter than the input lists
 
     """
 
