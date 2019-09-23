@@ -1,8 +1,6 @@
 import os
 
 from scipy import signal
-from scipy import interpolate
-import matplotlib.pyplot as plt
 
 from read import *
 
@@ -165,27 +163,7 @@ def crush_series(original_index, original, to_crush_index, to_crush):
     return df['crushed']
 
 
-stations_parent = r'E:\hurricane\station_data\Finished_Stations'
-station_files = os.listdir(stations_parent)
-print('Reading station data in')
 
-station_dfs = {station[:-4]:clean_read(os.path.join(stations_parent,station)) for station in station_files}
-
-val_err, type_err = [], []
-n = len(station_dfs)
-for i,(gauge, df) in enumerate(station_dfs.items()):
-    print(f'On {i+1} of {n}')
-    try:
-        dt = detrend_discontinuous(df.index, df['DO'], 1, 180, 'high', max_gap=56)
-        station_dfs[gauge]['DO Detrend'] = dt
-    except TypeError:
-        print(f'TypeError on {gauge}')
-        station_dfs[gauge]['DO Detrend'] = np.nan
-        type_err.append(gauge)
-    except ValueError:
-        print(f'ValueError on {gauge}')
-        station_dfs[gauge]['DO Detrend'] = np.nan
-        val_err.append(gauge)
 
 """
 saveloc = r'E:\hurricane\test_plots'
@@ -196,8 +174,10 @@ for gauge,df in station_dfs.items():
     plt.savefig(saver)
     plt.close()
 plt.ion()
-"""
+
 
 for gauge,df in station_dfs.items():
     print(f'Saving {gauge}')
     df.to_csv(os.path.join(stations_parent, gauge + '.csv'))
+    
+"""

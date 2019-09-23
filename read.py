@@ -18,6 +18,7 @@ def clean_read(file, nodata_val=-999):
     """
 
     df = pd.read_csv(file)
+    df['Date'] = pd.to_datetime(df['Date'], format='%Y/%m/%d')
     df = df.replace(nodata_val, np.nan)
 
     return df
