@@ -165,70 +165,39 @@ def crush_series(original_index, original, to_crush_index, to_crush):
     return df['crushed']
 
 
+stations_parent = r'E:\hurricane\station_data\Finished_Stations'
+station_files = os.listdir(stations_parent)
+print('Reading station data in')
 
-#sta = 20 # fine
-#sta = 150 # problem - data too discontinuous. need to interpolate small gaps?
-#sta = 300 # same as above
-sta = 500 # same as above
-parent = r'D:\SkyJones\hurricane\station_data\Finished_Stations'
-stations = os.listdir(parent)
-station = stations[sta]
+station_dfs = {station[:-4]:clean_read(os.path.join(stations_parent,station)) for station in station_files}
 
-path = os.path.join(parent, station)
-
-full = clean_read(path)
-
-'''
-t = full.index
-y = full.DO
-t_cont, y_cont = continuous_subsets(t,y,10000,True)
-'''
-
-
-plt.figure()
-plt.plot(full.index, full['DO'], label='Original')
-plt.title(station)
-
-dt = detrend_discontinuous(full.index, full['DO'], 1, 180, 'high', max_gap=7)
-full['DO Detrend'] = dt
-
-plt.plot(full.index, full['DO Detrend'], label='High Pass (T>180)')
-
-plt.xlabel('t (days)')
-plt.ylabel('DO (mg/L)')
-plt.legend()
-plt.show()
-
+val_err, type_err = [], []
+n = len(station_dfs)
+for i,(gauge, df) in enumerate(station_dfs.items()):
+    print(f'On {i+1} of {n}')
+    try:
+        dt = detrend_discontinuous(df.index, df['DO'], 1, 180, 'high', max_gap=56)
+        station_dfs[gauge]['DO Detrend'] = dt
+    except TypeError:
+        print(f'TypeError on {gauge}')
+        station_dfs[gauge]['DO Detrend'] = np.nan
+        type_err.append(gauge)
+    except ValueError:
+        print(f'ValueError on {gauge}')
+        station_dfs[gauge]['DO Detrend'] = np.nan
+        val_err.append(gauge)
 
 """
-gap_data = clean_read(path).DO
-gap_sig = np.array(gap_data)
-gap_t = np.array(gap_data.index)
-
-data = gap_data.dropna()
-
-fs = 1
-
-fc_high = 1/180
-fc_low = 1/3
-
-t = np.array(data.index)
-orig_sig = np.array(data)
-plt.figure()
-
-plt.plot(t, orig_sig, label='signal')
-
-high = detrend(orig_sig, 1, 180, 'high')
-plt.plot(t, high, label='high')
-
-low = detrend(orig_sig, 1, 10, 'low')
-plt.plot(t, low, label='low')
-
-band = detrend(orig_sig, 1, [10,180], 'bandpass')
-plt.plot(t, band, label='bandpass')
-
-plt.legend()
-plt.show()
+saveloc = r'E:\hurricane\test_plots'
+plt.ioff()
+for gauge,df in station_dfs.items():
+    df.plot()
+    saver = os.path.join(saveloc, f'{gauge}.pdf')
+    plt.savefig(saver)
+    plt.close()
+plt.ion()
 """
 
-
+for gauge,df in station_dfs.items():
+    print(f'Saving {gauge}')
+    df.to_csv(os.path.join(stations_parent, gauge + '.csv'))
