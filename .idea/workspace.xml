@@ -48,8 +48,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/detrend.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="313">
-              <caret line="171" selection-start-line="171" selection-end-line="171" />
+            <state relative-caret-position="262">
+              <caret line="168" selection-start-line="168" selection-end-line="168" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -339,12 +339,12 @@
       <workItem from="1568310412371" duration="4138000" />
       <workItem from="1568489900776" duration="30350000" />
       <workItem from="1568564615555" duration="4322000" />
-      <workItem from="1568651457528" duration="20916000" />
+      <workItem from="1568651457528" duration="22404000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="80653000" />
+    <option name="totallyTimeSpent" value="82141000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1912" y="-8" width="1936" height="1096" extended-state="6" />
@@ -471,8 +471,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/detrend.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="171" selection-start-line="171" selection-end-line="171" />
+        <state relative-caret-position="262">
+          <caret line="168" selection-start-line="168" selection-end-line="168" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>

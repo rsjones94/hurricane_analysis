@@ -166,10 +166,10 @@ def crush_series(original_index, original, to_crush_index, to_crush):
 
 
 
-#sta = 20 # fine
+sta = 20 # fine
 #sta = 150 # problem - data too discontinuous. need to interpolate small gaps?
 #sta = 300 # same as above
-sta = 500 # same as above
+#sta = 500 # same as above
 parent = r'D:\SkyJones\hurricane\station_data\Finished_Stations'
 stations = os.listdir(parent)
 station = stations[sta]
