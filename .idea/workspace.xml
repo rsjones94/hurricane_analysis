@@ -48,11 +48,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/processing.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="18" column="24" lean-forward="true" selection-start-line="18" selection-start-column="24" selection-end-line="18" selection-end-column="24" />
+            <state relative-caret-position="458">
+              <caret line="71" column="24" selection-start-line="71" selection-start-column="24" selection-end-line="71" selection-end-column="24" />
               <folding>
                 <element signature="e#2#29#0" expanded="true" />
               </folding>
@@ -60,11 +60,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/full.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="2" selection-start-line="2" selection-end-line="2" />
+            <state relative-caret-position="85">
+              <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
             </state>
           </provider>
         </entry>
@@ -130,8 +130,8 @@
         <option value="$PROJECT_DIR$/detrend.py" />
         <option value="$PROJECT_DIR$/resolve.py" />
         <option value="$PROJECT_DIR$/analysis.py" />
-        <option value="$PROJECT_DIR$/processing.py" />
         <option value="$PROJECT_DIR$/full.py" />
+        <option value="$PROJECT_DIR$/processing.py" />
       </list>
     </option>
   </component>
@@ -186,7 +186,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.processing">
+  <component name="RunManager" selected="Python.full">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="hurricane_analysis" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -309,8 +309,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.processing" />
         <item itemvalue="Python.full" />
+        <item itemvalue="Python.processing" />
         <item itemvalue="Python.resolve" />
         <item itemvalue="Python.analysis" />
         <item itemvalue="Python.date_extraction" />
@@ -338,12 +338,12 @@
       <workItem from="1569253782408" duration="10317000" />
       <workItem from="1569264986742" duration="6463000" />
       <workItem from="1569696688528" duration="7000" />
-      <workItem from="1569696717777" duration="11630000" />
+      <workItem from="1569696717777" duration="12816000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="130157000" />
+    <option name="totallyTimeSpent" value="131343000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1088" y="-978" width="1096" height="1896" extended-state="6" />
@@ -364,7 +364,7 @@
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="11" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="12" visible="true" weight="0.30799773" />
+      <window_info anchor="bottom" id="Python Console" order="12" visible="true" weight="0.30799773" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -472,16 +472,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/detrend.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1042">
-          <caret line="164" column="13" lean-forward="true" selection-start-line="164" selection-start-column="13" selection-end-line="164" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
@@ -492,20 +482,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/processing.py">
+    <entry file="file://$PROJECT_DIR$/detrend.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="18" column="24" lean-forward="true" selection-start-line="18" selection-start-column="24" selection-end-line="18" selection-end-column="24" />
+        <state relative-caret-position="1042">
+          <caret line="164" column="13" lean-forward="true" selection-start-line="164" selection-start-column="13" selection-end-line="164" selection-end-column="13" />
           <folding>
-            <element signature="e#2#29#0" expanded="true" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/full.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="2" selection-start-line="2" selection-end-line="2" />
+        <state relative-caret-position="85">
+          <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/processing.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="458">
+          <caret line="71" column="24" selection-start-line="71" selection-start-column="24" selection-end-line="71" selection-end-column="24" />
+          <folding>
+            <element signature="e#2#29#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

@@ -2,7 +2,6 @@
 
 from read import clean_read
 from detrend import *
-from raster_extraction import *
 from date_extraction import *
 
 out_loc = r'E:\hurricane\station_data\modified'
@@ -17,12 +16,12 @@ t_max = 30 # longest period trend to keep
 
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
 detr_meth = {'PH':'sin',
-             'Discharge':'lin',
-             'Gage':'lin',
-             'Turb':'lin',
+             'Discharge':'sin',
+             'Gage':'sin',
+             'Turb':'sin',
              'DO':'sin',
              'N in situ':'sin',
-             'SS':'lin'
+             'SS':'sin'
              } # detrending method
 
 maxg = 56 # max detrending gap
@@ -71,6 +70,7 @@ for par, out_p in zip(params,out_par):
 
 """
 # adding PRISM rain data
+from raster_extraction import *
 col_names = pd.read_csv(gauge_file, nrows=0).columns
 types_dict = {'gauge': str, 'x': float, 'y':float}
 
