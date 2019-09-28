@@ -78,8 +78,6 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
         ax2.plot(exes, rain, color='blue', label='Rainfall', linewidth=0.5)
         ax1.plot([], [], color='blue', label='Rainfall', linewidth=0.5) # dummy
 
-
-
         ax1.plot(exes, whys, color='black', label=param, linewidth=2)
         win_x = gauge_df.index[(ind-pr_len):ind]
         win_y = gauge_df[param][(ind-pr_len):ind]
