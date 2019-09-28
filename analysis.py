@@ -27,10 +27,12 @@ stddev_step = 2
 
 preeffect_width = int(7*10)
 preeffect_min = 5
-preeffect_max = 28
+preeffect_max = 10
 
 stormstart_window = 5
-stormstart_min = 5
+stormstart_min = 2
+
+longterm_width = 365
 
 #######
 
@@ -43,9 +45,22 @@ station_dfs = {station[:-4]:clean_read(os.path.join(parent, station)) for statio
 gauge_dates_mod = onsets_by_rain(gauge_dates, station_dfs, stormstart_window, stormstart_min)
 
 
-params_of_interest = ['PH', 'Discharge', 'Gage', 'Turb', 'DO Detrend', 'N in situ', 'SS']
-output_cols = ['Gauge', 'Date', 'Storm', 'Storm Index', 'Naive Storm Index', 'Pre-effect Window', 'Pre-effect Points',
-               'Pre-effect Mean', 'Pre-effect Stddev']
+params_of_interest = ['PH Detrend', 'Discharge Detrend', 'Gage Detrend', 'Turb Detrend',
+                      'DO Detrend', 'N in situ Detrend', 'SS Detrend']
+output_cols = ['Gauge',
+               'Date',
+               'Storm',
+               'Storm Index',
+               'Naive Storm Index',
+               'Pre-effect Window',
+               'Pre-effect Points',
+               'Pre-effect Mean',
+               'Pre-effect Stddev',
+               'Long Term Window',
+               'Long Term Points',
+               'Long Term Mean',
+               'Long Term Stddev'
+               ]
 
 outputs = {param:pd.DataFrame(columns=output_cols) for param in params_of_interest}
 error_gauges = {}
@@ -53,7 +68,6 @@ error_gauges = {}
 for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
     print(f'Gauge {gauge}, {i+1} of {len(gauge_dates_mod)}')
     data = station_dfs[gauge]
-
 
     for storm, date in storm_dates.items():
         mask = data['Date'] == date
@@ -77,8 +91,20 @@ for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
                 else:
                     error_gauges[gauge].append(param)
             if np.isnan(max_error):
-                new_row = [gauge, date, storm, storm_ind, naive_ind,
-                           np.nan, np.nan, np.nan, np.nan]
+                new_row = [gauge, # gauge
+                           date, # date
+                           storm, # storm
+                           storm_ind, # storm index
+                           naive_ind, # naive storm index
+                           np.nan, # pre-effect window
+                           np.nan, # pre-effect points
+                           np.nan, # pre-effect mean
+                           np.nan, # pre-effect stddev
+                           np.nan, # long term window
+                           np.nan, # long term points
+                           np.nan, # long term mean
+                           np.nan # long term stddev
+                           ]
             else:
                 window = get_preeffect_window(data,
                                               why_col=param,
@@ -92,13 +118,34 @@ for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
                                                              why_col=param,
                                                              window=window)
 
-                new_row = [gauge, date, storm, storm_ind, naive_ind,
-                           window_len, pre_n, pre_mean, pre_stddev]
+                long_window = (window[1]-longterm_width, window[1])
+                long_mean, long_stddev, long_n = analyze_window(data,
+                                                                why_col=param,
+                                                                window=long_window)
+                # print(f'MEAN: {long_mean}, STDDEV: {long_stddev}, N: {long_n}')
+
+                new_row = [gauge, # gauge
+                           date, # date
+                           storm, # storm
+                           storm_ind, # storm index
+                           naive_ind, # naive storm index
+                           window_len, # pre-effect window
+                           pre_n, # pre-effect points
+                           pre_mean, # pre-effect mean
+                           pre_stddev, # pre-effect stddev
+                           longterm_width, # long term window
+                           long_n, # long term points
+                           long_mean, # long term mean
+                           long_stddev # long term stddev
+                           ]
+
+            #print(len(output_cols), len(new_row))
             appender = {col:entry for col,entry in zip(output_cols,new_row)}
+            #print(appender)
             outputs[param] = outputs[param].append(appender, ignore_index=True)
 
 for param,df in outputs.items():
     if protect_gauge_nums:
         df['Gauge'] = "'" + df['Gauge'].astype(str)
     path = os.path.join(out,f'{param}.csv')
-    df.to_csv(path)
+    df.to_csv(path, index=False)
