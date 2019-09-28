@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import pandas as pd
 import numpy as np
@@ -124,6 +125,9 @@ stations = os.listdir(stations_folder)
 param_dfs = {param[:-4]:pd.read_csv(os.path.join(results_folder,param), dtype={'Gauge':str}) for param in params}
 station_dfs = {station[:-4]:clean_read(os.path.join(stations_folder,station)) for station in stations}
 
+if os.path.isdir(plot_folder):
+    shutil.rmtree(plot_folder)
+os.mkdir(plot_folder)
 
 for param, df in param_dfs.items():
     df = df.dropna()

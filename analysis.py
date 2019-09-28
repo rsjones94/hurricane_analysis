@@ -2,6 +2,7 @@ import os
 import time
 import datetime
 import warnings
+import shutil
 
 import pandas as pd
 import numpy as np
@@ -35,6 +36,11 @@ stormstart_min = 2
 longterm_width = 365
 
 #######
+
+if os.path.isdir(out):
+    shutil.rmtree(out)
+os.mkdir(out)
+
 
 gauge_dates = relate_gauges_to_storms(sf, sef)
 gauge_nums = list(gauge_dates.keys())

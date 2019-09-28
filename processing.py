@@ -1,4 +1,5 @@
-
+import os
+import shutil
 
 from read import clean_read
 from detrend import *
@@ -12,16 +13,15 @@ detrend_note_loc = r'E:\hurricane\station_data\detrend_methods.csv'
 
 gauge_file = r'E:\hurricane\station_coords.csv'
 
-t_max = 30 # longest period trend to keep
-
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
-detr_meth = {'PH':'sin',
-             'Discharge':'sin',
-             'Gage':'sin',
-             'Turb':'sin',
-             'DO':'sin',
-             'N in situ':'sin',
-             'SS':'sin'
+t_cutoff = 30
+detr_meth = {'PH':t_cutoff,
+             'Discharge':'lin',
+             'Gage':'lin',
+             'Turb':'lin',
+             'DO':t_cutoff,
+             'N in situ':'lin',
+             'SS':'lin'
              } # detrending method
 
 maxg = 56 # max detrending gap
@@ -30,6 +30,14 @@ sf = r'E:\hurricane\dates\hurricane_data_dates.txt'
 sef = r'E:\hurricane\station_nos'
 
 ###############################
+
+if os.path.isdir(out_loc):
+    shutil.rmtree(out_loc)
+os.mkdir(out_loc)
+
+if os.path.exists(detrend_note_loc):
+    os.remove(detrend_note_loc)
+pd.Series(detr_meth).to_csv(detrend_note_loc)
 
 gauge_dates = relate_gauges_to_storms(sf, sef)
 gauges = list(gauge_dates.keys())
@@ -43,8 +51,6 @@ station_dfs = {gauge:clean_read(file) for gauge,file in zip(gauges,gauge_files)}
 # gauge = '02160700' # chop at index 4293 for PH
 station_dfs['02160700']['PH'].loc[:4293] = np.nan
 
-pd.Series(detr_meth).to_csv(detrend_note_loc)
-
 # detrending
 val_err, type_err = [], []
 n = len(station_dfs)
@@ -54,7 +60,8 @@ for par, out_p in zip(params,out_par):
     for i,(gauge, df) in enumerate(station_dfs.items()):
         print(f'On {i+1} of {n}')
         try:
-            if detr_meth[par] == 'sin':
+            if detr_meth[par] != 'lin':
+                t_max = detr_meth[par]
                 dt = detrend_discontinuous(df.index, df[par], 1, t_max, 'high', max_gap=maxg)
             else:
                 dt = detrend_discontinuous_linear(df.index, df[par], max_gap=365)
