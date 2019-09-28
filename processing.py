@@ -109,7 +109,8 @@ station_dfs = {station:df.reset_index(level='Date') for station, df in station_d
 
 # writing
 
-for gauge,df in station_dfs.items():
-    print(f'Writing {gauge}')
+n = len(station_dfs)
+for i, (gauge,df) in enumerate(station_dfs.items()):
+    print(f'Writing {gauge}. {i+1} of {n}')
     out_name = os.path.join(out_loc,f'{gauge}.csv')
     df.to_csv(out_name, index=False)
