@@ -1,12 +1,4 @@
-import os
-from datetime import datetime
-import time
 
-import gdal
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import signal
 
 from read import clean_read
 from detrend import *
@@ -20,6 +12,8 @@ station_files = os.listdir(stations_parent)
 detrend_note_loc = r'E:\hurricane\station_data\detrend_methods.csv'
 
 gauge_file = r'E:\hurricane\station_coords.csv'
+
+t_max = 30 # longest period trend to keep
 
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
 detr_meth = {'PH':'sin',
@@ -62,7 +56,7 @@ for par, out_p in zip(params,out_par):
         print(f'On {i+1} of {n}')
         try:
             if detr_meth[par] == 'sin':
-                dt = detrend_discontinuous(df.index, df[par], 1, 180, 'high', max_gap=maxg)
+                dt = detrend_discontinuous(df.index, df[par], 1, t_max, 'high', max_gap=maxg)
             else:
                 dt = detrend_discontinuous_linear(df.index, df[par], max_gap=365)
             station_dfs[gauge][out_p] = dt
