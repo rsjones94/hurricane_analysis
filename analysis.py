@@ -39,6 +39,7 @@ longterm_width = 365
 
 if os.path.isdir(out):
     shutil.rmtree(out)
+
 os.mkdir(out)
 
 

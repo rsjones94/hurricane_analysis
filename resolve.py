@@ -125,6 +125,7 @@ station_dfs = {station[:-4]:clean_read(os.path.join(stations_folder,station)) fo
 
 if os.path.isdir(plot_folder):
     shutil.rmtree(plot_folder)
+
 os.mkdir(plot_folder)
 
 for param, df in param_dfs.items():

@@ -14,15 +14,14 @@ detrend_note_loc = r'E:\hurricane\station_data\detrend_methods.csv'
 gauge_file = r'E:\hurricane\station_coords.csv'
 
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
-t_cutoff = 30
-detr_meth = {'PH':t_cutoff,
+detr_meth = {'PH':120,
              'Discharge':'lin',
              'Gage':'lin',
              'Turb':'lin',
-             'DO':t_cutoff,
-             'N in situ':'lin',
+             'DO':60,
+             'N in situ':120,
              'SS':'lin'
-             } # detrending method
+             } # detrending method, linear or maximum allowable period for sinusoidal signals
 
 maxg = 56 # max detrending gap
 
@@ -33,10 +32,11 @@ sef = r'E:\hurricane\station_nos'
 
 if os.path.isdir(out_loc):
     shutil.rmtree(out_loc)
-os.mkdir(out_loc)
 
 if os.path.exists(detrend_note_loc):
     os.remove(detrend_note_loc)
+
+os.mkdir(out_loc)
 pd.Series(detr_meth).to_csv(detrend_note_loc)
 
 gauge_dates = relate_gauges_to_storms(sf, sef)
@@ -66,11 +66,11 @@ for par, out_p in zip(params,out_par):
             else:
                 dt = detrend_discontinuous_linear(df.index, df[par], max_gap=365)
             station_dfs[gauge][out_p] = dt
-        except TypeError:
+        except TypeError: # malformed data
             print(f'TypeError on {gauge}')
             station_dfs[gauge][out_p] = np.nan
             type_err.append(gauge)
-        except ValueError:
+        except ValueError: # data too gappy to detrend
             print(f'ValueError on {gauge}')
             station_dfs[gauge][out_p] = np.nan
             val_err.append(gauge)
