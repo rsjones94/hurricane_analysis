@@ -40,13 +40,12 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         max_dropout: number of continues no signals before mandatory termination
 
     Returns:
-        A list with two parts. The first is the index of the effect's end (or None, if there was
-        no effect). The second is list, (days_above, days_below, days_between,
+        A list with two parts. The first is a list of the start and end indices of the effect
+        (or None, if there was no effect). The second is list, (days_above, days_below, days_between,
         termination_type, forcing_start, forcing_slope). termination_type can be "natural" or "forced".
         If not forced, forcing_start and forcing_slope will be None.
     """
-    returner = [None, [0, 0, 0, 'natural', None, None]]
-
+    returner = [[None, None], [0, 0, 0, 'natural', None, None]]
 
     comp_dict = {1:greater,-1:lesser}
 
@@ -64,7 +63,6 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
     else:
         raise Exception('effect_type must be 1 or -1')
 
-    direction = None
     effect_begun = False
     i = start_index
     while lag > 0:
@@ -73,12 +71,18 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         val = whys[i]
         if comp_dict[effect_type](val,comp_val):
             effect_begun = True
+            returner[0][0] = i
+            break
     if not effect_begun:
+        returner[1][3] = None
         return returner
 
+    i -= 1
     is_returning = False
     while True:
         i += 1
+        if i > (i + max_effect):
+            returner[1][3] = 'max_effect'
         last_val = whys[i-1]
         val = whys[i]
         if comp_dict[effect_type](last_val,val): # checking to see if the data has started going back to pre-peturbation
@@ -89,17 +93,25 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                 if dropthrough[0] == 0: # if no dropthroughs left then we're done
                     break
                 else:
-                    if drops_through(exes,i,normalcy,dropthrough[1]: # if it does drop through, go on
-                        dropthrough[0] -= 1
-                    else: # if it doesn't, then we're done
-                        break
+                    if within(val,normalcy): # if we're within normalcy, check to see if we'll drop through in time
+                        does_drop_through, ind = drops_through(exes,i,normalcy,dropthrough[1])
+                        if does_drop_through: # if it does drop through, go on
+                            days_to_drop = ind - i
+                            returner[1][2] += days_to_drop-1
+                            i = ind-1
+                        else: # if it doesn't, then we're done
+                            break
+                    dropthrough[0] -= 1
+                    effect_type = -effect_type
+                    is_returning = False
+
 
             elif force_completion and comp_dict[effect_type](val,last_val):
                 # check to see if the data is moving away from pre-pet again, force_completion is numeric
                 if days_to_return(exes, i, max_nan=max_droput) <= force_completion: # if we return in time
                     pass # do nothing
                 else: # force completion
-                    pass # PLACEHOLDER
+                    raise NotImplementedError('Completion forcing not implemented yet')
 
 
         if val > high:
@@ -109,9 +121,8 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         else:
             returner[1][2] += 1
 
-    returner[0] = i
-
-
+    returner[0][1] = i
+    return returner
 
 
 def greater(a,b):
@@ -156,6 +167,7 @@ def days_to_return(exes, i, max_nan=0):
 
     return n
 
+
 def drops_through(exes, i, window, allowed):
     """
     Checks if exes drops through the window fast enough from index i
@@ -190,8 +202,8 @@ def drops_through(exes, i, window, allowed):
         count += 1
         val = exes[i]
         if func(val,comp):
-            return True
-    return False
+            return True,i
+    return False,-1
 
 
 
@@ -201,6 +213,8 @@ def drops_through(exes, i, window, allowed):
 data = clean_read(os.path.join(data_folder,choice_gauge+'.csv'))
 result_df = pd.read_csv(os.path.join(results_folder,choice_param+'.csv'), dtype={'Gauge':str})
 
+result_df['Effect Start'] = np.nan
+result_df['Effect End'] = np.nan
 result_df['Total Effect'] = np.nan
 result_df['Effect Above'] = np.nan
 result_df['Effect Below'] = np.nan
@@ -223,6 +237,9 @@ for index,line in result_df.iterrows():
 low = mean - stddev
 high = mean + stddev
 
+(es, ee), stats = get_effect(data, choice_param, mean, stddev, start, lag=3, effect_type=1,
+               dropthrough=[0,0], force_completion=None, max_effect=365, max_droput=5)
+
 plt.figure()
 
 
@@ -230,6 +247,8 @@ plt.plot(data.index,data[choice_param])
 plt.axvline(start, color='red')
 plt.axhline(high, color='orange')
 plt.axhline(low, color='orange')
+plt.axvline(es, color='green')
+plt.axvline(ee, color='blue')
 plt.xlim(start-28,start+28)
 
 plt.show()
