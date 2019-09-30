@@ -10,6 +10,8 @@ print(f'\n\n ---- Run PROCESSING ---- \n\n')
 os.system('processing.py')
 print(f'\n\n ---- Run ANALYSIS ---- \n\n')
 os.system('analysis.py')
+print(f'\n\n ---- Run GET_EFFECT_PERIOD ---- \n\n')
+os.system('get_effect_period.py')
 print(f'\n\n ---- Run RESOLVE ---- \n\n')
 os.system('resolve.py')
 

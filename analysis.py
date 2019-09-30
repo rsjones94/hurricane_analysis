@@ -35,6 +35,8 @@ stormstart_min = 2
 
 longterm_width = 365
 
+stddvs_for_error = 0.5
+
 #######
 
 if os.path.isdir(out):
@@ -89,7 +91,7 @@ for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
             try:
                 max_error = typical_stddev(data[param], at_index=storm_ind,
                                            history_length=stddev_history,
-                                           window_size=stddev_window, step=stddev_step)
+                                           window_size=stddev_window, step=stddev_step) * stddvs_for_error
             except TypeError: # happens with malformed data
                 warnings.warn(f'TypeError: malformation on {gauge,param}')
                 max_error = np.nan

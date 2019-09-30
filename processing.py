@@ -14,14 +14,14 @@ detrend_note_loc = r'E:\hurricane\station_data\detrend_methods.csv'
 gauge_file = r'E:\hurricane\station_coords.csv'
 
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
-detr_meth = {'PH':120,
-             'Discharge':'lin',
-             'Gage':'lin',
-             'Turb':'lin',
-             'DO':60,
-             'N in situ':120,
-             'SS':'lin'
-             } # detrending method, linear or maximum allowable period for sinusoidal signals
+detr_meth = {'PH':14,
+             'Discharge':None,
+             'Gage':None,
+             'Turb':None,
+             'DO':14,
+             'N in situ':14,
+             'SS':None
+             } # detrending method, linear or maximum allowable period for sinusoidal signals, or None
 
 maxg = 56 # max detrending gap
 
@@ -60,7 +60,9 @@ for par, out_p in zip(params,out_par):
     for i,(gauge, df) in enumerate(station_dfs.items()):
         print(f'On {i+1} of {n}')
         try:
-            if detr_meth[par] != 'lin':
+            if detr_meth[par] is None:
+                dt = df[par]
+            elif detr_meth[par] != 'lin':
                 t_max = detr_meth[par]
                 dt = detrend_discontinuous(df.index, df[par], 1, t_max, 'high', max_gap=maxg)
             else:

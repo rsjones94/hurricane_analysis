@@ -38,14 +38,48 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
     gauge_df = gauge_dfs[gauge_name]
     ind = row['Storm Index']
     naive_ind = row['Naive Storm Index']
-    start = ind - int(view_width/2)
-    end = ind + int(view_width/2) + 1
     mean = row['Pre-effect Mean']
     stddev = row['Pre-effect Stddev']
     pr_len = int(row['Pre-effect Window'])
     n = row['Pre-effect Points']
     long_mean = row['Long Term Mean']
     long_std = row['Long Term Stddev']
+    try:
+        es = int(row['Effect Start'])
+    except ValueError:
+        es = row['Effect Start']
+    try:
+        ee = int(row['Effect End'])
+    except ValueError:
+        ee = row['Effect End']
+    try:
+        te = int(row['Total Effect'])
+    except ValueError:
+        te = row['Total Effect']
+    try:
+        e_above = int(row['Effect Above'])
+    except ValueError:
+        e_above = row['Effect Above']
+    try:
+        e_below = int(row['Effect Below'])
+    except ValueError:
+        e_below = row['Effect Below']
+    try:
+        e_between = int(row['Effect Between'])
+    except ValueError:
+        e_between = row['Effect Between']
+    try:
+        f_start = int(row['Forced Start'])
+    except ValueError:
+        f_start = row['Forced Start']
+    t_type = row['Termination']
+    f_slope = row['Forced Slope']
+
+    start = ind - int(view_width/2) - pr_len
+
+    end = ind + int(view_width/2)
+    if not np.isnan(te):
+        end += te
 
     if not np.isnan(n):
         storm = row['Storm']
@@ -59,29 +93,26 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
         ax2.set_ylabel('Rainfall')
 
         #plt.figure()
-        ax1.axvline(ind, color='forestgreen', label='Estimated Date of Storm Effect')
-        ax1.axvline(naive_ind, linestyle='dashed', color='grey', label='Storm Landfall')
+        ax1.axvline(ind, color='darkgoldenrod', label='Estimated Date of Storm Effect')
+        ax1.axvline(naive_ind, linestyle='dotted', color='grey', label='Storm Landfall')
 
-        ax1.axhline(mean, linestyle='dashed', color='blue', label='Pre-Effect Tolerance')
-        ax1.axhline(mean + stddev, linestyle='dashed', color='navy')
-        ax1.axhline(mean - stddev, linestyle='dashed', color='navy')
+        ax1.axhline(mean, linestyle='dotted', color='blue', label='Pre-Effect Tolerance')
+        ax1.axhline(mean + stddev, linestyle='dotted', color='navy')
+        ax1.axhline(mean - stddev, linestyle='dotted', color='navy')
 
         """
-        ax1.axhline(long_mean, linestyle='dashed', color='gold', label='Long-Term Tolerance')
-        ax1.axhline(long_mean + long_std, linestyle='dashed', color='orange')
-        ax1.axhline(long_mean - long_std, linestyle='dashed', color='orange')
+        ax1.axhline(long_mean, linestyle='dotted', color='gold', label='Long-Term Tolerance')
+        ax1.axhline(long_mean + long_std, linestyle='dotted', color='orange')
+        ax1.axhline(long_mean - long_std, linestyle='dotted', color='orange')
         """
+        filled_y = gauge_df[param].interpolate(limit_direction='both')
 
         exes = gauge_df.index[start:end]
         whys = gauge_df[param][start:end]
+        interp_whys = filled_y[start:end]
         rain = gauge_df['Rain'][start:end]
         ax2.plot(exes, rain, color='blue', label='Rainfall', linewidth=0.5)
         ax1.plot([], [], color='blue', label='Rainfall', linewidth=0.5) # dummy
-
-        ax1.plot(exes, whys, color='black', label=param, linewidth=2)
-        win_x = gauge_df.index[(ind-pr_len):ind]
-        win_y = gauge_df[param][(ind-pr_len):ind]
-        ax1.plot(win_x, win_y, color='red', linewidth=2, label='Pre-effect Window')
 
         if complement:
             if 'Detrend' in param:
@@ -94,10 +125,38 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
             ax1.plot(cexes, cwhys, color='orange', label=com, linewidth=1)
 
 
-        plt.title(f'{gauge_name}\n'
-                  f'{param}, {storm} ({storm_date})\n'
-                  f'Window: {pr_len} days (mean {round(mean,2)}, stddev {round(stddev,2)}, n {n})')
+        title = f'{gauge_name}\n'\
+                f'{param}, {storm} ({storm_date})\n'\
+                f'Pre-Window: {pr_len} days (mean {round(mean,2)}, stddev {round(stddev,2)}, n {n})\n'\
+                f'Effect: {te} (AB{e_above}-BE{e_below}-BT{e_between})\n'\
+                f'Termination: {t_type}'
 
+        ax1.plot(exes, interp_whys, color='gray', linewidth=2)
+        ax1.plot(exes, whys, color='black', label=param, linewidth=2)
+        win_x = gauge_df.index[(ind-pr_len):ind]
+        win_y = gauge_df[param][(ind-pr_len):ind]
+        ax1.plot(win_x, win_y, color='red', linewidth=2, label='Pre-effect Window', linestyle='dashed')
+
+        if not np.isnan(es):
+            ef_x = gauge_df.index[es:(ee+1)]
+            ef_y = filled_y[es:(ee+1)]
+            ax1.plot(ef_x, ef_y, color='forestgreen', linewidth=2, label='Effect Window', linestyle='dashed')
+
+        if t_type == 'forced':
+            title += f' {f_start,round(f_slope,2)}'
+
+            x1 = f_start
+            x2 = ee
+            y1 = filled_y[f_start]
+            y2 = y1 + (x2 - x1) * f_slope
+
+            fx = [x1, x2]
+            fy = [y1, y2]
+
+            ax1.plot(fx, fy, color='forestgreen', linewidth=2, linestyle=(0,(5,1)))
+
+
+        plt.title(title)
         plt.xlim(start, end)
 
         ax1.legend()
@@ -129,14 +188,14 @@ if os.path.isdir(plot_folder):
 os.mkdir(plot_folder)
 
 for param, df in param_dfs.items():
-    df = df.dropna()
+    df = df.dropna(subset=['Pre-effect Window']) # gauges which don't even have a window
     n_rows = len(df)
     print(f'\nOn {param}. {n_rows} rows.\n')
     out_folder = os.path.join(plot_folder, param)
     os.mkdir(out_folder)
     for i,row in enumerate(df.iterrows()):
         print(f'Saving figure {i+1} of {n_rows}')
-        resolve(row, param, station_dfs, view_width=int(28*4),
+        resolve(row, param, station_dfs, view_width=int(28*2),
                 save=True,
                 saveloc=os.path.join(plot_folder,param),
                 complement=True
