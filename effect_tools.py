@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 from read import clean_read
 from detrend import *
 
-choice_param = 'Turb Detrend'
-choice_gauge = '02292900'
+choice_param = 'Gage Detrend'
+choice_gauge = '08065350'
 
 results_folder = r'E:\hurricane\results'
 data_folder = r'E:\hurricane\station_data\modified'
+
+###########
 
 def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                returning_gap=0, dropthrough=(0,0), forcing=(None,None),
@@ -55,27 +57,29 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
     force_completion = forcing[0] # number of days to regress before completion is forced
     force_history = forcing[1]
 
-    dropthrough = (dropthrough[0], dropthrough[1])
+    dropthrough = [dropthrough[0], dropthrough[1]]
 
     comp_dict = {1:greater,-1:lesser}
 
-    orig = np.array(data.index)
-    exes = np.array(pd.Series(orig).interpolate(limit_direction='both'))
-    whys = np.array(data[param])
+    exes = np.array(data.index)
+    orig = np.array(data[param])
+    whys = np.array(pd.Series(orig).interpolate(limit_direction='both'))
 
     low = mean - stddev
     high = mean + stddev
     normalcy = (low,high)
 
     if effect_type == 1:
-        comp_val = high
+        comp_ind = 1
+        comp_val = normalcy[comp_ind] # high
     elif effect_type == -1:
-        comp_val = low
+        comp_ind = 0
+        comp_val = normalcy[comp_ind] # low
     else:
         raise Exception('effect_type must be 1 or -1')
 
     effect_begun = False
-    i = start_index
+    i = start_index-1
     while lag > 0:
         lag -= 1
         i += 1
@@ -100,8 +104,10 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
 
         if np.isnan(orig[i]):
             nan_count += 1
+            print(f'NANNER: {nan_count}')
             if nan_count > max_droput:
                 returner[1][3] = 'dropout'
+                print('dropping out')
                 break
         else:
             nan_count = 0
@@ -111,9 +117,9 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
 
         if comp_dict[effect_type](last_val,val) and not is_returning: # checking to see if the data has started going back to pre-peturbation
             ret_gap_count += 1
-            print('retgap')
+            print(f'Retgap: {ret_gap_count} at {i}')
             if ret_gap_count > returning_gap:
-                print('returning')
+                print(f'returning at {i}')
                 is_returning = True
                 ret_gap_count = 0
         elif not is_returning:
@@ -122,20 +128,26 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         if is_returning:
 
             if comp_dict[effect_type](comp_val,val): # check to see if we've returned to normalcy
-
+                print(f'we normal at {i}')
                 if dropthrough[0] == 0: # if no dropthroughs left then we're done
+                    print('no dropthroughs left')
                     break
                 else:
                     if within(val,normalcy): # if we're within normalcy, check to see if we'll drop through in time
-                        does_drop_through, ind = drops_through(exes,i,normalcy,dropthrough[1])
+                        print('need to chec dropthrough')
+                        does_drop_through, ind = drops_through(whys,i,normalcy,dropthrough[1])
+                        print(f'Drops thru? {does_drop_through}')
                         if does_drop_through: # if it does drop through, go on
                             days_to_drop = ind - i
                             returner[1][2] += days_to_drop-1
                             i = ind-1
                         else: # if it doesn't, then we're done
+                            print('did not drop thru')
                             break
                     dropthrough[0] -= 1
                     effect_type = -effect_type
+                    comp_ind ^= 1 # bit flip from 0 to 1 and vice versa
+                    comp_val = normalcy[comp_ind]
                     is_returning = False
 
             elif force_completion and comp_dict[effect_type](val,last_val):
@@ -145,12 +157,13 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                 print('Force completion active')
                 print(f'Func {comp_dict[effect_type]}, vals {val,last_val}. Ind {i}')
                 dn = days_to_return(whys, i-1, func=comp_dict[-effect_type], max_nan=max_droput)
+                print(dn)
                 if dn <= force_completion: # if we return in time
                     if last_val > high:
-                        returner[1][0] += (dn-1)
+                        returner[1][0] += (dn-2)
                     if last_val < low:
-                        returner[1][1] += (dn-1)
-                    i += (dn-1)
+                        returner[1][1] += (dn-2)
+                    i += (dn-2)
                 else: # force completion
                     print(f'Forcing completion')
                     ind, days_to_force, slope = forced_return(exes, whys, i-1, normalcy, history=force_history)
@@ -297,9 +310,11 @@ def drops_through(exes, i, window, allowed):
     if val > window[1]:
         func = lesser
         comp = window[0]
+        print('First val out of window is above. Checking to see when val goes below window')
     elif val < window[0]:
         func = greater
         comp = window[1]
+        print('First val out of window is below. Checking to see when val goes above window')
     else:
         raise Exception('Whoah. something weird with drop_through()')
 
@@ -308,6 +323,7 @@ def drops_through(exes, i, window, allowed):
         i += 1
         count += 1
         val = exes[i]
+        print(val,comp)
         if func(val,comp):
             return True,i
     return False,-1
@@ -345,7 +361,7 @@ low = mean - stddev
 high = mean + stddev
 
 (es, ee), stats = get_effect(data, choice_param, mean, stddev, start, lag=3, effect_type=1,
-               returning_gap=2, dropthrough=[0,0], forcing=(5,4), max_effect=365, max_droput=5)
+               returning_gap=1, dropthrough=[1,10], forcing=(3,4), max_effect=365, max_droput=5)
 
 plt.figure()
 
@@ -355,7 +371,7 @@ plt.axvline(start, color='red')
 plt.axhline(high, color='orange')
 plt.axhline(low, color='orange')
 if stats[3] is not None:
-    plt.axvline(es, color='green')
+    plt.axvline(es, color='green', linestyle='dashed')
     plt.axvline(ee, color='blue')
 if stats[3] == 'forced':
     x1 = stats[4]
