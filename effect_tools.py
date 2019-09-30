@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from read import clean_read
+from detrend import *
 
 choice_param = 'Turb Detrend'
 choice_gauge = '07263296'
@@ -14,7 +15,7 @@ results_folder = r'E:\hurricane\results'
 data_folder = r'E:\hurricane\station_data\modified'
 
 def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
-               dropthrough=(0,0), force_completion=None, max_effect=365):
+               dropthrough=[0,0], force_completion=None, max_effect=365, max_droput=5):
     """
     For a given parameter, finds the time it takes for the time series to return to normalcy
     after a peturbation
@@ -28,7 +29,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         lag: the number of days allowed for an effect to begin. Minimum is 1
         effect_type: the INITIAL expected effect of the peturbation. 1 indicates a positive effect, -1
                      indicates a negative effect
-        dropthrough: A tuple indicating the number of dropthroughs allowed and the number of days
+        dropthrough: A list (not a tuple) indicating the number of dropthroughs allowed and the number of days
                      the time series is allotted to drop through before being considered terminated
         force_completion: the number of days a returning trend can be reversed before it is forced to
                           return by calculating the best fit line for the last three returning days and
@@ -36,6 +37,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                           estimated even when additional storms/forcing effects follow the initial
                           peturbation. Default is None, which will never force a completion.
         max_effect: the maximum number of days an effect can continue before being terminated
+        max_dropout: number of continues no signals before mandatory termination
 
     Returns:
         A list with two parts. The first is the index of the effect's end (or None, if there was
@@ -45,13 +47,8 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
     """
     returner = [None, [0, 0, 0, 'natural', None, None]]
 
-    def greater(a,b):
-        return a>b
-    def lesser(a,b):
-        return a<b
+
     comp_dict = {1:greater,-1:lesser}
-    def within(a,b):
-        return b[1] > a > b[0]
 
     exes = np.array(data.index)
     whys = np.array(data[param])
@@ -84,9 +81,117 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         i += 1
         last_val = whys[i-1]
         val = whys[i]
-        if comp_dict[effect_type](last_val,val):
+        if comp_dict[effect_type](last_val,val): # checking to see if the data has started going back to pre-peturbation
             is_returning = True
+        if is_returning:
 
+            if comp_dict[effect_type](comp_val,val): # check to see if we've returned to normalcy
+                if dropthrough[0] == 0: # if no dropthroughs left then we're done
+                    break
+                else:
+                    if drops_through(exes,i,normalcy,dropthrough[1]: # if it does drop through, go on
+                        dropthrough[0] -= 1
+                    else: # if it doesn't, then we're done
+                        break
+
+            elif force_completion and comp_dict[effect_type](val,last_val):
+                # check to see if the data is moving away from pre-pet again, force_completion is numeric
+                if days_to_return(exes, i, max_nan=max_droput) <= force_completion: # if we return in time
+                    pass # do nothing
+                else: # force completion
+                    pass # PLACEHOLDER
+
+
+        if val > high:
+            returner[1][0] += 1
+        elif val < low:
+            returner[1][1] += 1
+        else:
+            returner[1][2] += 1
+
+    returner[0] = i
+
+
+
+
+def greater(a,b):
+    return a>b
+def lesser(a,b):
+    return a<b
+def within(a,b):
+    return b[1] > a > b[0]
+
+
+def days_to_return(exes, i, max_nan=0):
+    """
+    Returns the days for a series to return to above/below the indexed value
+
+    Args:
+        exes: series of x vals
+        i: index to start at
+        max_nan: maximum allowable consecutive nans
+
+    Returns:
+        num of days to return
+
+    """
+
+    initial = exes[i]
+    sec = exes[i+1]
+    if sec > initial:
+        func = lesser
+    elif sec < initial:
+        func = greater
+
+    nas = 0
+    n = 0
+    while nas <= max_nan:
+        i += 1
+        n += 1
+        val = exes[i]
+        if np.isnan(val):
+            nas += 1
+        elif func(val,initial):
+            break
+
+    return n
+
+def drops_through(exes, i, window, allowed):
+    """
+    Checks if exes drops through the window fast enough from index i
+
+    Args:
+        exes: the x data
+        i: the index being checked
+        window: the min and max of the window
+        allowed: number of days allowed to pass through the window
+
+    Returns:
+        bool
+    """
+
+    val = exes[i]
+    while within(val,window):
+        i -= 1
+        val = exes[i]
+
+    if val > window[1]:
+        func = lesser
+        comp = window[0]
+    elif val < window[0]:
+        func = greater
+        comp = window[1]
+    else:
+        raise Exception('Whoah. something weird with drop_through()')
+
+    count = 0
+    while count < allowed:
+        i += 1
+        count += 1
+        val = exes[i]
+        if func(val,comp):
+            return True
+    return False
 
 
 
