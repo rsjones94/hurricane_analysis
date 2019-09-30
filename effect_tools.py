@@ -8,13 +8,6 @@ import matplotlib.pyplot as plt
 from read import clean_read
 from detrend import *
 
-choice_param = 'Gage Detrend'
-choice_gauge = '08065350'
-
-results_folder = r'E:\hurricane\results'
-data_folder = r'E:\hurricane\station_data\modified'
-
-###########
 
 def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                returning_gap=0, dropthrough=(0,0), forcing=(None,None),
@@ -104,10 +97,10 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
 
         if np.isnan(orig[i]):
             nan_count += 1
-            print(f'NANNER: {nan_count}')
+            # print(f'NANNER: {nan_count}')
             if nan_count > max_droput:
                 returner[1][3] = 'dropout'
-                print('dropping out')
+                # print('dropping out')
                 break
         else:
             nan_count = 0
@@ -117,9 +110,9 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
 
         if comp_dict[effect_type](last_val,val) and not is_returning: # checking to see if the data has started going back to pre-peturbation
             ret_gap_count += 1
-            print(f'Retgap: {ret_gap_count} at {i}')
+            # print(f'Retgap: {ret_gap_count} at {i}')
             if ret_gap_count > returning_gap:
-                print(f'returning at {i}')
+                # print(f'returning at {i}')
                 is_returning = True
                 ret_gap_count = 0
         elif not is_returning:
@@ -128,21 +121,21 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         if is_returning:
 
             if comp_dict[effect_type](comp_val,val): # check to see if we've returned to normalcy
-                print(f'we normal at {i}')
+                # print(f'we normal at {i}')
                 if dropthrough[0] == 0: # if no dropthroughs left then we're done
-                    print('no dropthroughs left')
+                    # print('no dropthroughs left')
                     break
                 else:
                     if within(val,normalcy): # if we're within normalcy, check to see if we'll drop through in time
-                        print('need to chec dropthrough')
+                        # print('need to chec dropthrough')
                         does_drop_through, ind = drops_through(whys,i,normalcy,dropthrough[1])
-                        print(f'Drops thru? {does_drop_through}')
+                        # print(f'Drops thru? {does_drop_through}')
                         if does_drop_through: # if it does drop through, go on
                             days_to_drop = ind - i
                             returner[1][2] += days_to_drop-1
                             i = ind-1
                         else: # if it doesn't, then we're done
-                            print('did not drop thru')
+                            # print('did not drop thru')
                             break
                     dropthrough[0] -= 1
                     effect_type = -effect_type
@@ -154,10 +147,10 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                 # check to see if the data is moving away from pre-pet again
                 # assuming force_completion is numeric
 
-                print('Force completion active')
-                print(f'Func {comp_dict[effect_type]}, vals {val,last_val}. Ind {i}')
+                # print('Force completion active')
+                # print(f'Func {comp_dict[effect_type]}, vals {val,last_val}. Ind {i}')
                 dn = days_to_return(whys, i-1, func=comp_dict[-effect_type], max_nan=max_droput)
-                print(dn)
+                # print(dn)
                 if dn <= force_completion: # if we return in time
                     if last_val > high:
                         returner[1][0] += (dn-2)
@@ -165,9 +158,9 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                         returner[1][1] += (dn-2)
                     i += (dn-2)
                 else: # force completion
-                    print(f'Forcing completion')
+                    # print(f'Forcing completion')
                     ind, days_to_force, slope = forced_return(exes, whys, i-1, normalcy, history=force_history)
-                    print(f'Completion forced at {ind} from {i-1}. Takes {days_to_force} days. Slope: {slope}')
+                    # print(f'Completion forced at {ind} from {i-1}. Takes {days_to_force} days. Slope: {slope}')
                     returner[1][3] = 'forced'
                     returner[1][4] = i-1
                     returner[1][5] = slope
@@ -187,6 +180,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
             returner[1][2] += 1
 
     returner[0][1] = i
+    # print(returner[0])
     return returner
 
 
@@ -233,12 +227,14 @@ def forced_return(exes, whys, i, window, history=3):
         r = y + (index-anchor)*slope
         return r
 
-    if exes[i] > window[1]:
+    if whys[i] > window[1]:
         func = lesser
         comp = window[1]
     elif whys[i] < window[0]:
         func = greater
         comp = window[0]
+    else:
+        Exception('Whoah. something weird with forced_return()')
 
     val = whys[i]
     n = 0
@@ -246,7 +242,7 @@ def forced_return(exes, whys, i, window, history=3):
         i += 1
         n += 1
         val = lin_func(index=i)
-        print(val)
+        # print(val)
 
     return i, n, m
 
@@ -265,9 +261,11 @@ def days_to_return(exes, i, func, max_nan=0):
 
     """
     if func is lesser:
-        print('looking for when vals drop below comp')
+        # print('looking for when vals drop below comp')
+        pass
     elif func is greater:
-        print('looking for when vals rise above comp')
+        # print('looking for when vals rise above comp')
+        pass
 
     initial = exes[i]
 
@@ -278,7 +276,7 @@ def days_to_return(exes, i, func, max_nan=0):
             i += 1
             n += 1
             val = exes[i]
-            print(f'Compare {val} to initial ({initial})')
+            # print(f'Compare {val} to initial ({initial})')
             if np.isnan(val):
                 nas += 1
             elif func(val,initial):
@@ -310,11 +308,11 @@ def drops_through(exes, i, window, allowed):
     if val > window[1]:
         func = lesser
         comp = window[0]
-        print('First val out of window is above. Checking to see when val goes below window')
+        # print('First val out of window is above. Checking to see when val goes below window')
     elif val < window[0]:
         func = greater
         comp = window[1]
-        print('First val out of window is below. Checking to see when val goes above window')
+        # print('First val out of window is below. Checking to see when val goes above window')
     else:
         raise Exception('Whoah. something weird with drop_through()')
 
@@ -323,7 +321,7 @@ def drops_through(exes, i, window, allowed):
         i += 1
         count += 1
         val = exes[i]
-        print(val,comp)
+        # print(val,comp)
         if func(val,comp):
             return True,i
     return False,-1
@@ -331,20 +329,20 @@ def drops_through(exes, i, window, allowed):
 
 
 ###############
+'''
+choice_param = 'Discharge Detrend'
+choice_gauge = '02218565'
+# 04249000
+# 015765185
+# 0209303205
+
+results_folder = r'E:\hurricane\results'
+data_folder = r'E:\hurricane\station_data\modified'
 
 
 data = clean_read(os.path.join(data_folder,choice_gauge+'.csv'))
 result_df = pd.read_csv(os.path.join(results_folder,choice_param+'.csv'), dtype={'Gauge':str})
 
-result_df['Effect Start'] = np.nan
-result_df['Effect End'] = np.nan
-result_df['Total Effect'] = np.nan
-result_df['Effect Above'] = np.nan
-result_df['Effect Below'] = np.nan
-result_df['Dropthrough'] = np.nan
-result_df['Termination'] = np.nan
-result_df['Forced Start'] = np.nan
-result_df['Forced Slope'] = np.nan
 for index,line in result_df.iterrows():
     if np.isnan(line['Pre-effect Window']):
         continue
@@ -361,7 +359,7 @@ low = mean - stddev
 high = mean + stddev
 
 (es, ee), stats = get_effect(data, choice_param, mean, stddev, start, lag=3, effect_type=1,
-               returning_gap=1, dropthrough=[1,10], forcing=(3,4), max_effect=365, max_droput=5)
+               returning_gap=1, dropthrough=[1,2], forcing=(3,4), max_effect=365, max_droput=5)
 
 plt.figure()
 
@@ -389,3 +387,5 @@ plt.title(f'Above: {stats[0]}, Below: {stats[1]}, Between: {stats[2]} \n'
           f'Termination Type: {stats[3]}')
 
 plt.show()
+
+'''
