@@ -1,3 +1,7 @@
+"""
+For plotting the results of the full workup
+"""
+
 import os
 import shutil
 
@@ -44,6 +48,7 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
     n = row['Pre-effect Points']
     long_mean = row['Long Term Mean']
     long_std = row['Long Term Stddev']
+    peak_mag = row['Peak Effect Magnitude']
     try:
         es = int(row['Effect Start'])
     except ValueError:
@@ -127,8 +132,9 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
 
         title = f'{gauge_name}\n'\
                 f'{param}, {storm} ({storm_date})\n'\
-                f'Pre-Window: {pr_len} days (mean {round(mean,2)}, stddev {round(stddev,2)}, n {n})\n'\
-                f'Effect: {te} (AB{e_above}-BE{e_below}-BT{e_between})\n'\
+                f'Pre-Window: {pr_len} days (mean {round(mean,2)}, stddev {round(stddev,2)}, n {int(n)})\n'\
+                f'Effect: {te} days (AB{e_above}-BE{e_below}-BT{e_between})\n'\
+                f'Peak Magnitude: {round(peak_mag,2)}\n' \
                 f'Termination: {t_type}'
 
         ax1.plot(exes, interp_whys, color='gray', linewidth=2)
@@ -143,7 +149,7 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
             ax1.plot(ef_x, ef_y, color='forestgreen', linewidth=2, label='Effect Window', linestyle='dashed')
 
         if t_type == 'forced':
-            title += f' {f_start,round(f_slope,2)}'
+            title += f' (at {f_start}, slope {round(f_slope,2)})'
 
             x1 = f_start
             x2 = ee

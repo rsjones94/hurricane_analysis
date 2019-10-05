@@ -1,3 +1,7 @@
+"""
+For getting the pre-effect windows/stddevs
+"""
+
 import os
 import time
 import datetime

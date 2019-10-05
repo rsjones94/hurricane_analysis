@@ -1,3 +1,7 @@
+"""
+For detrending and adding rain data
+"""
+
 import os
 import shutil
 
@@ -14,12 +18,12 @@ detrend_note_loc = r'E:\hurricane\station_data\detrend_methods.csv'
 gauge_file = r'E:\hurricane\station_coords.csv'
 
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
-detr_meth = {'PH':14,
+detr_meth = {'PH':None,
              'Discharge':None,
              'Gage':None,
              'Turb':None,
-             'DO':14,
-             'N in situ':14,
+             'DO':28,
+             'N in situ':None,
              'SS':None
              } # detrending method, linear or maximum allowable period for sinusoidal signals, or None
 

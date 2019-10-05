@@ -85,12 +85,16 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         returner[1][3] = None
         return returner
 
+    # print(f'Effect begins at {i} {whys[i]}')
+
     i -= 1
     is_returning = False
     nan_count = 0
     ret_gap_count = 0
     while True:
         i += 1
+
+        # print(f'Checking {i} {whys[i]}')
 
         if i > (i + max_effect):
             returner[1][3] = 'max_effect'
@@ -101,6 +105,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
             if nan_count > max_droput:
                 returner[1][3] = 'dropout'
                 # print('dropping out')
+                i -= nan_count-1
                 break
         else:
             nan_count = 0
@@ -108,10 +113,12 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         last_val = whys[i-1]
         val = whys[i]
 
-        if comp_dict[effect_type](last_val,val) and not is_returning: # checking to see if the data has started going back to pre-peturbation
+        towards_pre = comp_dict[effect_type](last_val,val)
+        # print(f'Towards pre: {towards_pre}')
+        if towards_pre and not is_returning: # checking to see if the data has started going back to pre-peturbation
             ret_gap_count += 1
             # print(f'Retgap: {ret_gap_count} at {i}')
-            if ret_gap_count > returning_gap:
+            if ret_gap_count > returning_gap or comp_dict[effect_type](comp_val,val):
                 # print(f'returning at {i}')
                 is_returning = True
                 ret_gap_count = 0
@@ -180,7 +187,11 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
             returner[1][2] += 1
 
     returner[0][1] = i
-    # print(returner[0])
+
+    if returner[0][0] == returner[0][1]: # happens sometimes when there is a dropout but an effect is registered due to
+        # interpolation at the storm start
+        returner = [[None, None], [0, 0, 0, 'natural', None, None]]
+
     return returner
 
 
