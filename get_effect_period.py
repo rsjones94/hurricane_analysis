@@ -38,10 +38,6 @@ g_dfs = {g:clean_read(os.path.join(data_folder,f)) for g,f in zip(gauges,g_files
 
 n = len(r_dfs)
 for i,(param, result_df) in enumerate(r_dfs.items()):
-    """
-    if param != par:
-        continue
-    """
 
     print(f'On {param} ({i+1} of {n})')
 
@@ -66,10 +62,7 @@ for i,(param, result_df) in enumerate(r_dfs.items()):
             continue
 
         gauge = line['Gauge']
-        """
-        if gauge != gag:
-            continue
-        """
+
         print(f'G {gauge} ({j + 1} of {h})')
         data = g_dfs[gauge]
         start = line['Storm Index']
@@ -81,7 +74,7 @@ for i,(param, result_df) in enumerate(r_dfs.items()):
         (es, ee), (d_above, d_below, d_between, term_type, f_start, f_slope) = \
             get_effect(data, param, mean, stddev, start, lag=4, effect_type=ef_type,
                returning_gap=1, dropthrough=(0,0), forcing=(10,4),
-               max_effect=365, max_droput=3)
+               max_effect=50, max_droput=3)
 
         if es is not None and ee is not None:
             e_len = ee - es

@@ -125,6 +125,8 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         elif not is_returning:
             ret_gap_count = 0
 
+        # print(f'past pre-pet')
+
         if is_returning:
 
             if comp_dict[effect_type](comp_val,val): # check to see if we've returned to normalcy
@@ -151,12 +153,15 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                     is_returning = False
 
             elif force_completion and comp_dict[effect_type](val,last_val):
+                # print('moving away?')
                 # check to see if the data is moving away from pre-pet again
                 # assuming force_completion is numeric
 
                 # print('Force completion active')
                 # print(f'Func {comp_dict[effect_type]}, vals {val,last_val}. Ind {i}')
+                # print('ddtr:')
                 dn = days_to_return(whys, i-1, func=comp_dict[-effect_type], max_nan=max_droput)
+                # print(f'{dn}')
                 # print(dn)
                 if dn <= force_completion: # if we return in time
                     if last_val > high:
@@ -166,18 +171,22 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                     i += (dn-2)
                 else: # force completion
                     # print(f'Forcing completion')
-                    ind, days_to_force, slope = forced_return(exes, whys, i-1, normalcy, history=force_history)
-                    # print(f'Completion forced at {ind} from {i-1}. Takes {days_to_force} days. Slope: {slope}')
-                    returner[1][3] = 'forced'
-                    returner[1][4] = i-1
-                    returner[1][5] = slope
-                    to_add = days_to_force - 1
-                    if last_val > high:
-                        returner[1][0] += to_add
-                    if last_val < low:
-                        returner[1][1] += to_add
-                    i = ind
+                    try:
+                        ind, days_to_force, slope = forced_return(exes, whys, i-1, normalcy, history=force_history)
+                        # print(f'Completion forced at {ind} from {i-1}. Takes {days_to_force} days. Slope: {slope}')
+                        returner[1][3] = 'forced'
+                        returner[1][4] = i-1
+                        returner[1][5] = slope
+                        to_add = days_to_force - 1
+                        if last_val > high:
+                            returner[1][0] += to_add
+                        if last_val < low:
+                            returner[1][1] += to_add
+                        i = ind
+                    except ValueError:
+                        returner[1][3] = 'forcing error'
                     break
+                # print('eob')
 
         if val > high:
             returner[1][0] += 1
@@ -218,15 +227,17 @@ def forced_return(exes, whys, i, window, history=3):
         tuple (index_of_return, days_to_return, slope)
 
     """
-
+    # print('\nFORCING:')
     while True:
         x = exes[(i-history+1):(i+1)]
         y = whys[(i-history+1):(i+1)]
         m, b = np.polyfit(x, y, 1)
-
+        # print(f'{m}')
         if whys[i] > window[1] and m >= 0:
             history -= 1
         elif whys[i] < window[0] and m <= 0:
+            history -= 1
+        elif np.isclose(m, 0):
             history -= 1
         else:
             break
@@ -238,12 +249,16 @@ def forced_return(exes, whys, i, window, history=3):
         r = y + (index-anchor)*slope
         return r
 
+    # print('lin_func defined')
+
     if whys[i] > window[1]:
         func = lesser
         comp = window[1]
+        # print('func def')
     elif whys[i] < window[0]:
         func = greater
         comp = window[0]
+        # print('func def')
     else:
         Exception('Whoah. something weird with forced_return()')
 
@@ -254,6 +269,8 @@ def forced_return(exes, whys, i, window, history=3):
         n += 1
         val = lin_func(index=i)
         # print(val)
+
+    # print('finished')
 
     return i, n, m
 
