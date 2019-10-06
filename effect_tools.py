@@ -29,7 +29,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                           before it is considered to be on its reverse trend
         dropthrough: A list or tuple indicating the number of dropthroughs allowed and the number of days
                      the time series is allotted to drop through before being considered terminated
-        forcing: a tuple of 1.the number of days a returning trend can be reversed before it is forced to
+        forcing: a tuple of 1. the number of days a returning trend can be reversed before it is forced to
                           return by calculating the best fit line for the last three returning days and
                           calculating the date of intersection. This allows an effect window to be
                           estimated even when additional storms/forcing effects follow the initial
@@ -89,6 +89,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
 
     i -= 1
     is_returning = False
+    has_real_val = False
     nan_count = 0
     ret_gap_count = 0
     while True:
@@ -108,6 +109,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                 i -= nan_count-1
                 break
         else:
+            has_real_val = True
             nan_count = 0
 
         last_val = whys[i-1]
@@ -185,6 +187,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                         i = ind
                     except ValueError:
                         returner[1][3] = 'forcing error'
+                        i -= 1
                     break
                 # print('eob')
 
@@ -196,6 +199,9 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
             returner[1][2] += 1
 
     returner[0][1] = i
+
+    if not has_real_val:
+        returner = [[None, None], [0, 0, 0, 'dropout', None, None]]
 
     if returner[0][0] == returner[0][1]: # happens sometimes when there is a dropout but an effect is registered due to
         # interpolation at the storm start

@@ -73,7 +73,7 @@ for i,(param, result_df) in enumerate(r_dfs.items()):
 
         (es, ee), (d_above, d_below, d_between, term_type, f_start, f_slope) = \
             get_effect(data, param, mean, stddev, start, lag=4, effect_type=ef_type,
-               returning_gap=1, dropthrough=(0,0), forcing=(10,4),
+               returning_gap=1, dropthrough=(0,0), forcing=(4,5),
                max_effect=50, max_droput=3)
 
         if es is not None and ee is not None:

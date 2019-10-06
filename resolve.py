@@ -46,9 +46,8 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
     stddev = row['Pre-effect Stddev']
     pr_len = int(row['Pre-effect Window'])
     n = row['Pre-effect Points']
-    long_mean = row['Long Term Mean']
-    long_std = row['Long Term Stddev']
     peak_mag = row['Peak Effect Magnitude']
+    dropped_ps = row['Dropped Pre-Effect Points']
     try:
         es = int(row['Effect Start'])
     except ValueError:
@@ -132,7 +131,7 @@ def resolve(row, param, gauge_dfs, view_width=int(28*2), save=False, saveloc=Non
 
         title = f'{gauge_name}\n'\
                 f'{param}, {storm} ({storm_date})\n'\
-                f'Pre-Window: {pr_len} days (mean {round(mean,2)}, stddev {round(stddev,2)}, n {int(n)})\n'\
+                f'Pre-Window: {pr_len} days (mean {round(mean,2)}, stddev {round(stddev,3)}, n {int(n)}, dropped pts {int(dropped_ps)})\n'\
                 f'Effect: {te} days (AB{e_above}-BE{e_below}-BT{e_between})\n'\
                 f'Peak Magnitude: {round(peak_mag,2)}\n' \
                 f'Termination: {t_type}'

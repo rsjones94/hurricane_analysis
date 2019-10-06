@@ -69,10 +69,7 @@ output_cols = ['Gauge',
                'Pre-effect Points',
                'Pre-effect Mean',
                'Pre-effect Stddev',
-               'Long Term Window',
-               'Long Term Points',
-               'Long Term Mean',
-               'Long Term Stddev'
+               'Dropped Pre-Effect Points' # number of dropped points due to stddev
                ]
 
 outputs = {param:pd.DataFrame(columns=output_cols) for param in params_of_interest}
@@ -113,10 +110,7 @@ for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
                            np.nan, # pre-effect points
                            np.nan, # pre-effect mean
                            np.nan, # pre-effect stddev
-                           np.nan, # long term window
-                           np.nan, # long term points
-                           np.nan, # long term mean
-                           np.nan # long term stddev
+                           np.nan, # dropped short points
                            ]
             else:
                 window = get_preeffect_window(data,
@@ -127,16 +121,15 @@ for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
                                               min_win=preeffect_min,
                                               max_win=preeffect_max)
                 window_len = window[1]-window[0]
-                pre_mean, pre_stddev, pre_n = analyze_window(data,
+                pre_mean, pre_stddev, pre_n, dropped_short_points = analyze_window(data,
                                                              why_col=param,
                                                              window=window)
 
-                long_window = (window[1]-longterm_width, window[1])
-                long_mean, long_stddev, long_n = analyze_window(data,
-                                                                why_col=param,
-                                                                window=long_window)
+                # long_window = (window[1]-longterm_width, window[1])
+                # long_mean, long_stddev, long_n, dropped_long_points = analyze_window(data,
+                                                                # why_col=param,
+                                                                # window=long_window)
                 # print(f'MEAN: {long_mean}, STDDEV: {long_stddev}, N: {long_n}')
-
                 new_row = [gauge, # gauge
                            date, # date
                            storm, # storm
@@ -146,10 +139,7 @@ for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
                            pre_n, # pre-effect points
                            pre_mean, # pre-effect mean
                            pre_stddev, # pre-effect stddev
-                           longterm_width, # long term window
-                           long_n, # long term points
-                           long_mean, # long term mean
-                           long_stddev # long term stddev
+                           dropped_short_points # Dropped Pre-Effect Points
                            ]
 
             #print(len(output_cols), len(new_row))
