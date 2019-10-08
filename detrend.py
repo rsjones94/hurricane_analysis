@@ -1,6 +1,7 @@
 import os
 
 from scipy import signal
+from scipy.signal import detrend as dt
 
 from read import *
 
@@ -128,6 +129,37 @@ def detrend_discontinuous(t, x, fs, T, ftype, max_gap=0, recenter=True):
 
     sub_tees, sub_exes = continuous_subsets(t, x, max_gap=max_gap, repair=True)
     d_exes = [detrend(sub, fs, T, ftype, recenter=False) for sub in sub_exes]
+
+    tees = []
+    exes = []
+    for sub_t, sub_x in zip(sub_tees, d_exes):
+        tees.extend(sub_t)
+        exes.extend(sub_x)
+
+    if recenter:
+        exes = exes + (np.nanmean(x)-np.mean(exes))
+
+    c = crush_series(t, x, tees, exes)
+    return c
+
+def detrend_discontinuous_linear(t, x, max_gap=0, recenter=True):
+    """
+    Just removed the linear signal
+
+    Args:
+        t: time data (should be continuous)
+        x: x data. may be gappy (has nans)
+        max_gap: the largest gap allowable for interpolation
+        recenter: if True, with output will have the same mean as the input
+
+    Returns:
+        The detrended data as a pd Series. if the original data was discontinuous, there will be fewer entries in the
+        returned Series, but the index will still match up
+
+    """
+
+    sub_tees, sub_exes = continuous_subsets(t, x, max_gap=max_gap, repair=True)
+    d_exes = [dt(sub) for sub in sub_exes]
 
     tees = []
     exes = []

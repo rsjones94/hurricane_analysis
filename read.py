@@ -139,9 +139,10 @@ def get_preeffect_window(df, why_col, threshold, index, width, min_win=5, max_wi
     raise IndexError('Preeffect window error')
 
 
-def analyze_window(df, why_col, window):
+def analyze_window(df, why_col, window, stddev_drop=True):
     """
-    Gets the mean, stddev and number of points for a window. Strips None/nans
+    Gets the mean, stddev and number of points for a window. Strips None/nans. Also, if a point falls outside of 1.5sd,
+    the point is removed and the sd is recalculated if stddev_drop is True
 
     Args:
         df: a dataframe
@@ -149,13 +150,27 @@ def analyze_window(df, why_col, window):
         window: window as a tuple or list (inclusive:exclusive)
 
     Returns:
-        a tuple (mean, stddev, n_points)
+        a tuple (mean, stddev, n_points, removed_points_due_to_sd)
 
     """
     sub = df[why_col][window[0]:window[1]]
     sub = sub.dropna()
+
     mean = np.mean(sub)
     stddev = np.std(sub)
+    n_window = len(sub)
+    n_drop = 0
 
-    return mean, stddev, len(sub)
+    if stddev_drop:
+        ma = mean + stddev*1.5
+        mi = mean - stddev*1.5
+
+        cut_sub = sub.loc[sub.between(mi, ma)]
+        stddev = np.std(cut_sub)
+
+        n_drop = len(sub) - len(cut_sub)
+        n_window = len(cut_sub)
+        mean = np.mean(cut_sub)
+
+    return mean, stddev, n_window, n_drop
 
