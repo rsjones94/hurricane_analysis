@@ -23,7 +23,7 @@ out = r'E:\hurricane\results'
 # the folder where the output will be written to
 
 parent = r'E:\hurricane\station_data\modified'
-# the parent folder that contain the data to be analzed
+# the parent folder that contain the data to be analyzed
 # folder where each file is a csv file titled as a gauge number, contained tabular gauge data
 
 protect_gauge_nums = False
@@ -31,7 +31,7 @@ protect_gauge_nums = False
 # generally this is not needed
 
 stddev_history = int(7 * 8)
-# the number of days before a storm impact to use as a subset to calculate a typical stddev for a parameter
+# the number of days before storm impact to use as a subset to calculate a typical stddev for a parameter
 stddev_window = int(7 * 2)
 # the width of the sliding window within the subset defined by stddev_history for which a stddev will be calculated
 stddev_step = 2

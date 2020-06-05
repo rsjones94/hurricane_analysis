@@ -7,6 +7,7 @@ from time import time
 
 wd = os.path.dirname(os.path.realpath(__file__))
 os.system(f'cd {wd}')
+# the two lines of code above change the working directory to that of this module while it's running
 
 start = time()
 

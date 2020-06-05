@@ -1,5 +1,5 @@
 """
-For detrending gauge data and adding rain data to it
+For detrending gauge data and adding rain data to the detrended data
 """
 
 import os
@@ -8,14 +8,15 @@ import shutil
 from read import clean_read
 from detrend import *
 from date_extraction import *
+from raster_extraction import *
 
 out_loc = r'E:\hurricane\station_data\modified'  # folder where output will go. will be created if it doesn't exist
 stations_parent = r'E:\hurricane\station_data\rain'  # folder of rain data
 station_files = os.listdir(stations_parent)  # stations you want to operate on
 
 detrend_note_loc = r'E:\hurricane\station_data\detrend_methods.csv'
+# the full path of a csv that will be written to record the detrending method used for each parameter
 
-gauge_file = r'E:\hurricane\station_coords.csv'
 
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
 detr_meth = {'PH': None,
@@ -25,7 +26,10 @@ detr_meth = {'PH': None,
              'DO': 28,
              'N in situ': None,
              'SS': None
-             }  # detrending method, linear or maximum allowable period for sinusoidal signals, or None
+             }  # detrending method: 'linear',  maximum allowable period for sinusoidal signals, or None
+
+gauge_file = r'E:\hurricane\station_coords.csv'
+# csv that gives that latitude and longitude of each gauge
 
 maxg = 56  # max detrending gap in days. if there are over maxg days of no data, then the time series will be
 # split at that point and each segment will be detrended separately
@@ -37,6 +41,9 @@ sef = r'E:\hurricane\station_nos'
 # 'storm effect files'
 # path to a folder with txt files where each filename is the name of a hurricane, and the contents are a single
 # column of gauge numbers that the hurricane's path is known to have crossed
+
+parent = r'E:\hurricane\prism'
+# folder where prism rain data is stores
 
 ###############################
 
@@ -87,16 +94,16 @@ for par, out_p in zip(params, out_par):
             station_dfs[gauge][out_p] = np.nan
             val_err.append(gauge)
 
-"""
 # adding PRISM rain data
-from raster_extraction import *
+
+
+bils = get_bils(parent)
+
 col_names = pd.read_csv(gauge_file, nrows=0).columns
 types_dict = {'gauge': str, 'x': float, 'y':float}
 
 gauges = pd.read_csv(gauge_file, dtype=types_dict)
 
-parent = r'E:\hurricane\prism'
-bils = get_bils(parent)
 
 dates, rows = extract_timeseries(gauges.x, gauges.y, bils)
 
@@ -117,7 +124,6 @@ for gauge_no, gauge_df in station_dfs.items():
         pass
 
 station_dfs = {station:df.reset_index(level='Date') for station, df in station_dfs.items()}
-"""
 
 # writing
 
