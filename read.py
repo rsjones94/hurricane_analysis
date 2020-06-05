@@ -1,3 +1,8 @@
+"""
+Functions for reading formatted gauge data in and extracting statistics
+"""
+
+
 import pandas as pd
 import numpy as np
 
@@ -75,7 +80,8 @@ def typical_stddev(whys, at_index, history_length=28, window_size=14, step=2):
 
 def segment_view(df, why_col, threshold, index, width):
     """
-    Recursively segments a a subset of a pandas df
+    Recursively segments a a subset of a pandas df by fitting a line to data and splitting the data if an
+    error theshold is exceeded
 
     Args:
         df: a pandas df

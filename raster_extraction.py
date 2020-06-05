@@ -1,3 +1,7 @@
+"""
+Functions to help with extracting rain gauge data from .bils format raster files
+"""
+
 import os
 from datetime import datetime
 import time

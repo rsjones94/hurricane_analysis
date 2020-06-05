@@ -1,5 +1,5 @@
 """
-For plotting the results of the full workup
+Module with functions for plotting the results of the full workup and a small script at the end.
 """
 
 import os

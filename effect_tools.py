@@ -10,7 +10,7 @@ from detrend import *
 
 
 def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
-               returning_gap=0, dropthrough=(0,0), forcing=(None,None),
+               returning_gap=0, dropthrough=(0, 0), forcing=(None, None),
                max_effect=365, max_droput=5):
     """
     For a given parameter, finds the time it takes for the time series to return to normalcy
@@ -29,12 +29,12 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                           before it is considered to be on its reverse trend
         dropthrough: A list or tuple indicating the number of dropthroughs allowed and the number of days
                      the time series is allotted to drop through before being considered terminated
-        forcing: a tuple of 1. the number of days a returning trend can be reversed before it is forced to
+        forcing: a tuple of 1) the number of days a returning trend can be reversed before it is forced to
                           return by calculating the best fit line for the last three returning days and
                           calculating the date of intersection. This allows an effect window to be
                           estimated even when additional storms/forcing effects follow the initial
                           peturbation. Default is None, which will never force a completion.
-                          2. the number of points to include in the forcing slope fit line
+                          2) the number of points to include in the forcing slope fit line
         max_effect: the maximum number of days an effect can continue before being terminated
         max_dropout: number of continues no signals before mandatory termination
 
@@ -47,12 +47,12 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
     """
     returner = [[None, None], [0, 0, 0, 'natural', None, None]]
 
-    force_completion = forcing[0] # number of days to regress before completion is forced
+    force_completion = forcing[0]  # number of days to regress before completion is forced
     force_history = forcing[1]
 
     dropthrough = [dropthrough[0], dropthrough[1]]
 
-    comp_dict = {1:greater,-1:lesser}
+    comp_dict = {1: greater, -1: lesser}
 
     exes = np.array(data.index)
     orig = np.array(data[param])
@@ -60,24 +60,24 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
 
     low = mean - stddev
     high = mean + stddev
-    normalcy = (low,high)
+    normalcy = (low, high)
 
     if effect_type == 1:
         comp_ind = 1
-        comp_val = normalcy[comp_ind] # high
+        comp_val = normalcy[comp_ind]  # high
     elif effect_type == -1:
         comp_ind = 0
-        comp_val = normalcy[comp_ind] # low
+        comp_val = normalcy[comp_ind]  # low
     else:
         raise Exception('effect_type must be 1 or -1')
 
     effect_begun = False
-    i = start_index-1
+    i = start_index - 1
     while lag > 0:
         lag -= 1
         i += 1
         val = whys[i]
-        if comp_dict[effect_type](val,comp_val):
+        if comp_dict[effect_type](val, comp_val):
             effect_begun = True
             returner[0][0] = i
             break
@@ -106,21 +106,21 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
             if nan_count > max_droput:
                 returner[1][3] = 'dropout'
                 # print('dropping out')
-                i -= nan_count-1
+                i -= nan_count - 1
                 break
         else:
             has_real_val = True
             nan_count = 0
 
-        last_val = whys[i-1]
+        last_val = whys[i - 1]
         val = whys[i]
 
-        towards_pre = comp_dict[effect_type](last_val,val)
+        towards_pre = comp_dict[effect_type](last_val, val)
         # print(f'Towards pre: {towards_pre}')
-        if towards_pre and not is_returning: # checking to see if the data has started going back to pre-peturbation
+        if towards_pre and not is_returning:  # checking to see if the data has started going back to pre-peturbation
             ret_gap_count += 1
             # print(f'Retgap: {ret_gap_count} at {i}')
-            if ret_gap_count > returning_gap or comp_dict[effect_type](comp_val,val):
+            if ret_gap_count > returning_gap or comp_dict[effect_type](comp_val, val):
                 # print(f'returning at {i}')
                 is_returning = True
                 ret_gap_count = 0
@@ -131,30 +131,30 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
 
         if is_returning:
 
-            if comp_dict[effect_type](comp_val,val): # check to see if we've returned to normalcy
+            if comp_dict[effect_type](comp_val, val):  # check to see if we've returned to normalcy
                 # print(f'we normal at {i}')
-                if dropthrough[0] == 0: # if no dropthroughs left then we're done
+                if dropthrough[0] == 0:  # if no dropthroughs left then we're done
                     # print('no dropthroughs left')
                     break
                 else:
-                    if within(val,normalcy): # if we're within normalcy, check to see if we'll drop through in time
+                    if within(val, normalcy):  # if we're within normalcy, check to see if we'll drop through in time
                         # print('need to chec dropthrough')
-                        does_drop_through, ind = drops_through(whys,i,normalcy,dropthrough[1])
+                        does_drop_through, ind = drops_through(whys, i, normalcy, dropthrough[1])
                         # print(f'Drops thru? {does_drop_through}')
-                        if does_drop_through: # if it does drop through, go on
+                        if does_drop_through:  # if it does drop through, go on
                             days_to_drop = ind - i
-                            returner[1][2] += days_to_drop-1
-                            i = ind-1
-                        else: # if it doesn't, then we're done
+                            returner[1][2] += days_to_drop - 1
+                            i = ind - 1
+                        else:  # if it doesn't, then we're done
                             # print('did not drop thru')
                             break
                     dropthrough[0] -= 1
                     effect_type = -effect_type
-                    comp_ind ^= 1 # bit flip from 0 to 1 and vice versa
+                    comp_ind ^= 1  # bit flip from 0 to 1 and vice versa
                     comp_val = normalcy[comp_ind]
                     is_returning = False
 
-            elif force_completion and comp_dict[effect_type](val,last_val):
+            elif force_completion and comp_dict[effect_type](val, last_val):
                 # print('moving away?')
                 # check to see if the data is moving away from pre-pet again
                 # assuming force_completion is numeric
@@ -162,22 +162,22 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                 # print('Force completion active')
                 # print(f'Func {comp_dict[effect_type]}, vals {val,last_val}. Ind {i}')
                 # print('ddtr:')
-                dn = days_to_return(whys, i-1, func=comp_dict[-effect_type], max_nan=max_droput)
+                dn = days_to_return(whys, i - 1, func=comp_dict[-effect_type], max_nan=max_droput)
                 # print(f'{dn}')
                 # print(dn)
-                if dn <= force_completion: # if we return in time
+                if dn <= force_completion:  # if we return in time
                     if last_val > high:
-                        returner[1][0] += (dn-2)
+                        returner[1][0] += (dn - 2)
                     if last_val < low:
-                        returner[1][1] += (dn-2)
-                    i += (dn-2)
-                else: # force completion
+                        returner[1][1] += (dn - 2)
+                    i += (dn - 2)
+                else:  # force completion
                     # print(f'Forcing completion')
                     try:
-                        ind, days_to_force, slope = forced_return(exes, whys, i-1, normalcy, history=force_history)
+                        ind, days_to_force, slope = forced_return(exes, whys, i - 1, normalcy, history=force_history)
                         # print(f'Completion forced at {ind} from {i-1}. Takes {days_to_force} days. Slope: {slope}')
                         returner[1][3] = 'forced'
-                        returner[1][4] = i-1
+                        returner[1][4] = i - 1
                         returner[1][5] = slope
                         to_add = days_to_force - 1
                         if last_val > high:
@@ -203,18 +203,22 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
     if not has_real_val:
         returner = [[None, None], [0, 0, 0, 'dropout', None, None]]
 
-    if returner[0][0] == returner[0][1]: # happens sometimes when there is a dropout but an effect is registered due to
+    if returner[0][0] == returner[0][1]:  # happens sometimes when there is a dropout but an effect is registered due to
         # interpolation at the storm start
         returner = [[None, None], [0, 0, 0, 'natural', None, None]]
 
     return returner
 
 
-def greater(a,b):
-    return a>b
-def lesser(a,b):
-    return a<b
-def within(a,b):
+def greater(a, b):
+    return a > b
+
+
+def lesser(a, b):
+    return a < b
+
+
+def within(a, b):
     return b[1] > a > b[0]
 
 
@@ -235,8 +239,8 @@ def forced_return(exes, whys, i, window, history=3):
     """
     # print('\nFORCING:')
     while True:
-        x = exes[(i-history+1):(i+1)]
-        y = whys[(i-history+1):(i+1)]
+        x = exes[(i - history + 1):(i + 1)]
+        y = whys[(i - history + 1):(i + 1)]
         m, b = np.polyfit(x, y, 1)
         # print(f'{m}')
         if whys[i] > window[1] and m >= 0:
@@ -252,7 +256,7 @@ def forced_return(exes, whys, i, window, history=3):
             raise ValueError('Forced return impossible')
 
     def lin_func(index, y=whys[i], anchor=i, slope=m):
-        r = y + (index-anchor)*slope
+        r = y + (index - anchor) * slope
         return r
 
     # print('lin_func defined')
@@ -270,7 +274,7 @@ def forced_return(exes, whys, i, window, history=3):
 
     val = whys[i]
     n = 0
-    while not func(val,comp):
+    while not func(val, comp):
         i += 1
         n += 1
         val = lin_func(index=i)
@@ -288,6 +292,7 @@ def days_to_return(exes, i, func, max_nan=0):
     Args:
         exes: series of x vals
         i: index to start at
+        func: a function, either lesser or greater as defined in this module
         max_nan: maximum allowable consecutive nans
 
     Returns:
@@ -313,7 +318,7 @@ def days_to_return(exes, i, func, max_nan=0):
             # print(f'Compare {val} to initial ({initial})')
             if np.isnan(val):
                 nas += 1
-            elif func(val,initial):
+            elif func(val, initial):
                 break
     except IndexError:
         pass
@@ -335,7 +340,7 @@ def drops_through(exes, i, window, allowed):
     """
 
     val = exes[i]
-    while within(val,window):
+    while within(val, window):
         i -= 1
         val = exes[i]
 
@@ -356,10 +361,9 @@ def drops_through(exes, i, window, allowed):
         count += 1
         val = exes[i]
         # print(val,comp)
-        if func(val,comp):
-            return True,i
-    return False,-1
-
+        if func(val, comp):
+            return True, i
+    return False, -1
 
 
 ###############

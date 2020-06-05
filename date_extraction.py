@@ -1,3 +1,4 @@
+
 import os
 from datetime import datetime
 
@@ -8,7 +9,7 @@ from read import clean_read
 
 def relate_gauges_to_storms(storm_file, storm_effect_folder, ext='.txt'):
     """
-    Takes finds what dates correspond to a hurricane landfall for gauges
+    Finds what dates correspond to a hurricane landfall for gauges
 
     Args:
         storm_file: a csv that relates storm names to landfall dates, with at minimum headers 'HURRICANE'

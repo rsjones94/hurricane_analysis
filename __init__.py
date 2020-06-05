@@ -1,3 +1,5 @@
+# this is simply a module that lets the interpreter know this directory is a Python package
+
 from compression import *
 from read import *
 from date_extraction import *

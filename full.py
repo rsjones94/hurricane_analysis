@@ -1,3 +1,7 @@
+"""
+The main Python file for running a full analysis in one go
+"""
+
 import os
 from time import time
 

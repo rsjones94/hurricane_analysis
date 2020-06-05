@@ -1,3 +1,7 @@
+"""
+Junk code for exploring ideas
+"""
+
 import random
 import math
 

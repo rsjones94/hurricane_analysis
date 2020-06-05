@@ -1,3 +1,8 @@
+"""
+This module contains functions designed to split a time series into linear segments by approximating them as straight lines.
+This is a common form of time series data compression.
+"""
+
 # NOTE: e norm here is NOT standard error: it is length-averaged error
 
 from itertools import chain
@@ -165,7 +170,9 @@ def split_segment(exes, whys, segment):
 
 
 def flatten(x):
-    ''' Creates a generator object that loops through a nested list '''
+    """
+    Creates a generator object that loops through a nested list
+    """
     # First see if the list is iterable
     try:
         it_is = iter(x)

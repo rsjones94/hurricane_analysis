@@ -1,5 +1,5 @@
 """
-For detrending and adding rain data
+For detrending gauge data and adding rain data to it
 """
 
 import os
@@ -9,28 +9,34 @@ from read import clean_read
 from detrend import *
 from date_extraction import *
 
-out_loc = r'E:\hurricane\station_data\modified'
-stations_parent = r'E:\hurricane\station_data\rain'
-station_files = os.listdir(stations_parent)
+out_loc = r'E:\hurricane\station_data\modified'  # folder where output will go. will be created if it doesn't exist
+stations_parent = r'E:\hurricane\station_data\rain'  # folder of rain data
+station_files = os.listdir(stations_parent)  # stations you want to operate on
 
 detrend_note_loc = r'E:\hurricane\station_data\detrend_methods.csv'
 
 gauge_file = r'E:\hurricane\station_coords.csv'
 
 params = ['PH', 'Discharge', 'Gage', 'Turb', 'DO', 'N in situ', 'SS']
-detr_meth = {'PH':None,
-             'Discharge':None,
-             'Gage':None,
-             'Turb':None,
-             'DO':28,
-             'N in situ':None,
-             'SS':None
-             } # detrending method, linear or maximum allowable period for sinusoidal signals, or None
+detr_meth = {'PH': None,
+             'Discharge': None,
+             'Gage': None,
+             'Turb': None,
+             'DO': 28,
+             'N in situ': None,
+             'SS': None
+             }  # detrending method, linear or maximum allowable period for sinusoidal signals, or None
 
-maxg = 56 # max detrending gap
+maxg = 56  # max detrending gap in days. if there are over maxg days of no data, then the time series will be
+# split at that point and each segment will be detrended separately
 
 sf = r'E:\hurricane\dates\hurricane_data_dates.txt'
+# "storm files'
+# path to a txt file with tabular data formatted as HURRICANE,LANDFALL,DATASTART,DATAEND
 sef = r'E:\hurricane\station_nos'
+# 'storm effect files'
+# path to a folder with txt files where each filename is the name of a hurricane, and the contents are a single
+# column of gauge numbers that the hurricane's path is known to have crossed
 
 ###############################
 
@@ -45,11 +51,11 @@ pd.Series(detr_meth).to_csv(detrend_note_loc)
 
 gauge_dates = relate_gauges_to_storms(sf, sef)
 gauges = list(gauge_dates.keys())
-gauge_files = [os.path.join(stations_parent, gauge+'.csv') for gauge in gauges]
+gauge_files = [os.path.join(stations_parent, gauge + '.csv') for gauge in gauges]
 print('Reading station data in')
 
-station_dfs = {gauge:clean_read(file) for gauge,file in zip(gauges,gauge_files)}
-#modded_gauge_dates = onsets_by_rain(gauge_dates,station_dfs)
+station_dfs = {gauge: clean_read(file) for gauge, file in zip(gauges, gauge_files)}
+# modded_gauge_dates = onsets_by_rain(gauge_dates,station_dfs)
 
 # custom mods
 # gauge = '02160700' # chop at index 4293 for PH
@@ -59,10 +65,10 @@ station_dfs['02160700']['PH'].loc[:4293] = np.nan
 val_err, type_err = [], []
 n = len(station_dfs)
 out_par = [p + ' Detrend' for p in params]
-for par, out_p in zip(params,out_par):
+for par, out_p in zip(params, out_par):
     print(f'\n--------- Detrending {par} ---------\n')
-    for i,(gauge, df) in enumerate(station_dfs.items()):
-        print(f'On {i+1} of {n}')
+    for i, (gauge, df) in enumerate(station_dfs.items()):
+        print(f'On {i + 1} of {n}')
         try:
             if detr_meth[par] is None:
                 dt = df[par]
@@ -72,11 +78,11 @@ for par, out_p in zip(params,out_par):
             else:
                 dt = detrend_discontinuous_linear(df.index, df[par], max_gap=365)
             station_dfs[gauge][out_p] = dt
-        except TypeError: # malformed data
+        except TypeError:  # malformed data
             print(f'TypeError on {gauge}')
             station_dfs[gauge][out_p] = np.nan
             type_err.append(gauge)
-        except ValueError: # data too gappy to detrend
+        except ValueError:  # data too gappy to detrend
             print(f'ValueError on {gauge}')
             station_dfs[gauge][out_p] = np.nan
             val_err.append(gauge)
@@ -116,7 +122,7 @@ station_dfs = {station:df.reset_index(level='Date') for station, df in station_d
 # writing
 
 n = len(station_dfs)
-for i, (gauge,df) in enumerate(station_dfs.items()):
-    print(f'Writing {gauge}. {i+1} of {n}')
-    out_name = os.path.join(out_loc,f'{gauge}.csv')
+for i, (gauge, df) in enumerate(station_dfs.items()):
+    print(f'Writing {gauge}. {i + 1} of {n}')
+    out_name = os.path.join(out_loc, f'{gauge}.csv')
     df.to_csv(out_name, index=False)
