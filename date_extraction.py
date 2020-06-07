@@ -1,4 +1,3 @@
-
 import os
 from datetime import datetime
 
@@ -27,17 +26,17 @@ def relate_gauges_to_storms(storm_file, storm_effect_folder, ext='.txt'):
     storm_names = storms['HURRICANE']
     storm_dates = pd.to_datetime(storms['LANDFALL'], format='%Y/%m/%d')
 
-    storm_dict = {storm:date for storm, date in zip(storm_names, storm_dates)}
+    storm_dict = {storm: date for storm, date in zip(storm_names, storm_dates)}
 
     gauges_to_storms = {}
     for storm in storm_names:
-        file = storm+ext
+        file = storm + ext
         file = os.path.join(storm_effect_folder, file)
         gauges = pd.read_csv(file, header=None)[0]
         for gauge in gauges:
             gauge = gauge[1:-1]
             if gauge not in gauges:
-                gauges_to_storms[gauge] = {storm:storm_dict[storm]}
+                gauges_to_storms[gauge] = {storm: storm_dict[storm]}
             else:
                 gauges_to_storms[gauge][storm] = storm_dict[storm]
 
@@ -46,12 +45,12 @@ def relate_gauges_to_storms(storm_file, storm_effect_folder, ext='.txt'):
 
 def onset_by_rain(date, df, window=5, rain_threshold=5):
     """
-    Finds true storm onset by fin
+    Finds true storm onset by finding the first date around the landfall that rain exceeds a threshold
 
     Args:
         date: the date to look around
         df: df with a date and rain column
-        window: number of days around date to find max (total window size is window*2
+        window: number of days around date to find max (total window size is window*2)
         rain_threshold: mm of rain to consider a storm to have started
 
     Returns:
@@ -64,7 +63,7 @@ def onset_by_rain(date, df, window=5, rain_threshold=5):
 
     sub_df = df.iloc[(storm_ind - window):(storm_ind + window)]
 
-    if sub_df.Rain.dropna().empty: # if there's no rain data
+    if sub_df.Rain.dropna().empty:  # if there's no rain data
         return date, storm_ind
 
     ind = sub_df.Rain.idxmax()
@@ -73,9 +72,7 @@ def onset_by_rain(date, df, window=5, rain_threshold=5):
         ind -= 1
         val = df.Rain.iloc[ind]
 
-    #ind += 1
-
-
+    # ind += 1
     return df['Date'].iloc[ind], ind
 
 
@@ -94,7 +91,7 @@ def onsets_by_rain(related_gauges, station_dfs, window=5, rain_threshold=5):
     """
 
     gauges = list(related_gauges.keys())
-    new = {g:{} for g in gauges}
+    new = {g: {} for g in gauges}
     rg = related_gauges.copy()
     for gauge, storm_dicts in rg.items():
         for storm, date in storm_dicts.items():

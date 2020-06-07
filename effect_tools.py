@@ -11,14 +11,14 @@ from detrend import *
 
 def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                returning_gap=0, dropthrough=(0, 0), forcing=(None, None),
-               max_effect=365, max_droput=5):
+               max_effect=365, max_dropout=5):
     """
     For a given parameter, finds the time it takes for the time series to return to normalcy
     after a peturbation
 
     Args:
         data: A DataFrame of gauge data
-        param: the column in Data to use
+        param: the column in data to use
         mean: the mean value of the pre-effect window
         stddev: the standard deviation of the pre-effect window
         start_index: the index of the storm peturbation
@@ -28,15 +28,18 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         returning_gap: number of days where an increasing effect is allowed to reverse trend
                           before it is considered to be on its reverse trend
         dropthrough: A list or tuple indicating the number of dropthroughs allowed and the number of days
-                     the time series is allotted to drop through before being considered terminated
+                     the time series is allotted to drop through before being considered terminated.
+                     A dropthrough is when a parameter is outside the normal range for that parameter and quickly
+                     becomes outside the normal range but with opposite valence, e.g., it is above the normal range and
+                     quickly goes to being below the normal range.
         forcing: a tuple of 1) the number of days a returning trend can be reversed before it is forced to
-                          return by calculating the best fit line for the last three returning days and
+                          return by calculating the best fit line for the last n returning days and
                           calculating the date of intersection. This allows an effect window to be
                           estimated even when additional storms/forcing effects follow the initial
                           peturbation. Default is None, which will never force a completion.
                           2) the number of points to include in the forcing slope fit line
         max_effect: the maximum number of days an effect can continue before being terminated
-        max_dropout: number of continues no signals before mandatory termination
+        max_dropout: number of continuous days of no signal before mandatory termination
 
     Returns:
         A list with two parts. The first is a list of the start and end indices of the effect
@@ -103,7 +106,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
         if np.isnan(orig[i]):
             nan_count += 1
             # print(f'NANNER: {nan_count}')
-            if nan_count > max_droput:
+            if nan_count > max_dropout:
                 returner[1][3] = 'dropout'
                 # print('dropping out')
                 i -= nan_count - 1
@@ -138,7 +141,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                     break
                 else:
                     if within(val, normalcy):  # if we're within normalcy, check to see if we'll drop through in time
-                        # print('need to chec dropthrough')
+                        # print('need to check dropthrough')
                         does_drop_through, ind = drops_through(whys, i, normalcy, dropthrough[1])
                         # print(f'Drops thru? {does_drop_through}')
                         if does_drop_through:  # if it does drop through, go on
@@ -162,7 +165,7 @@ def get_effect(data, param, mean, stddev, start_index, lag=3, effect_type=1,
                 # print('Force completion active')
                 # print(f'Func {comp_dict[effect_type]}, vals {val,last_val}. Ind {i}')
                 # print('ddtr:')
-                dn = days_to_return(whys, i - 1, func=comp_dict[-effect_type], max_nan=max_droput)
+                dn = days_to_return(whys, i - 1, func=comp_dict[-effect_type], max_nan=max_dropout)
                 # print(f'{dn}')
                 # print(dn)
                 if dn <= force_completion:  # if we return in time
@@ -397,7 +400,7 @@ low = mean - stddev
 high = mean + stddev
 
 (es, ee), stats = get_effect(data, choice_param, mean, stddev, start, lag=3, effect_type=1,
-               returning_gap=1, dropthrough=[1,2], forcing=(3,4), max_effect=365, max_droput=5)
+               returning_gap=1, dropthrough=[1,2], forcing=(3,4), max_effect=365, max_dropout=5)
 
 plt.figure()
 

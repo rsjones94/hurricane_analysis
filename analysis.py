@@ -118,7 +118,7 @@ for i, (gauge, storm_dates) in enumerate(gauge_dates_mod.items()):
                 # max_error is the maximum e^2_norm threshold allowed when recursively segmenting the pre-effect window
             except TypeError:  # happens with malformed data
                 warnings.warn(f'TypeError: malformation on {gauge, param}')
-                max_error = np.nan
+                max_error = np.nandfb
                 if gauge not in error_gauges:
                     error_gauges[gauge] = [param]
                 else:

@@ -30,6 +30,20 @@ param_effects = {'Discharge Detrend': 1,
 # if the value to a key is 1, then the parameter is assumed to increase (have a positive response) during the storm effect period
 # if the value to a key is -1, then the parameter is assumed to decrease (have a negative response) during the storm effect period
 
+lag_allowed = 4
+# number of days after storm onset for a parameter to become perturbed or no effect will be registered
+returning_gap_allowed = 1
+# number of days where an increasing effect is allowed to reverse trend before it is considered to be on its reverse trend
+dropthrough_allowed = (0, 0)
+# number of dropthroughs allowed before termination, and number of days allowed for a dropthrough to occur
+forcing_allowed = (4, 5)
+# number of days where, after the returning gap has been exceeded, the trend can be reversed before forced return is started,
+# and number of previous returning days used to calculate the return line
+max_effect_allowed = 50
+# maximum allowed length of an effect period
+max_dropout_allowed = 3
+# maximum number of days with no data before termination
+
 #################################
 
 r_files = [f for f in os.listdir(results_folder)]
@@ -76,19 +90,18 @@ for i, (param, result_df) in enumerate(r_dfs.items()):
         stddev = line['Pre-effect Stddev']
 
         ef_type = param_effects[param]
-
         (es, ee), (d_above, d_below, d_between, term_type, f_start, f_slope) = get_effect(data,
                                                                                           param,
                                                                                           mean,
                                                                                           stddev,
                                                                                           start,
-                                                                                          lag=4,
+                                                                                          lag=lag_allowed,
                                                                                           effect_type=ef_type,
-                                                                                          returning_gap=1,
-                                                                                          dropthrough=(0, 0),
-                                                                                          forcing=(4, 5),
-                                                                                          max_effect=50,
-                                                                                          max_droput=3)
+                                                                                          returning_gap=returning_gap_allowed,
+                                                                                          dropthrough=dropthrough_allowed,
+                                                                                          forcing=forcing_allowed,
+                                                                                          max_effect=max_effect_allowed,
+                                                                                          max_dropout=max_dropout_allowed)
 
         if es is not None and ee is not None:
             e_len = ee - es
